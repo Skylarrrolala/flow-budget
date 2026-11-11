@@ -1,0 +1,20 @@
+# Installed dependencies
+node_modules/
+
+# Production build output
+dist/
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# macOS files
+.DS_Store
+
+# Local editor settings
+.vscode/
+.idea/
+
+# Debug logs
+*.log
