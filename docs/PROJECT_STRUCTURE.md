@@ -45,7 +45,18 @@ flow-budget/
 │   ├── App.jsx
 │   └── main.jsx
 ├── docs/
-│   └── PROJECT_STRUCTURE.md
+│   ├── PROJECT_STRUCTURE.md
+│   └── specification/
+│       ├── README.md
+│       ├── SRS.md
+│       ├── traceability-matrix.md
+│       ├── decision-log.md
+│       ├── data-contracts.md
+│       ├── business-rules.md
+│       ├── user-journeys.md
+│       ├── wbs-updates.md
+│       └── fixtures/
+│           └── sample-snapshot.json
 ├── README.md
 └── .gitignore
 ```
@@ -81,6 +92,7 @@ Every JavaScript/JSX file contains one brief `//` purpose comment; the styleshee
 | `src/App.jsx` | Compose the application shell, finance provider, and routing. |
 | `src/main.jsx` | Mount the application in the future HTML entry point and load global styles. |
 | `docs/PROJECT_STRUCTURE.md` | Explain the scaffold, module boundaries, and planned ownership. |
+| `docs/specification/` | Revision 1.2 specification package: SRS, data contracts, business rules, user journeys, traceability matrix, decision log, WBS updates, and the shared test fixture. See its `README.md`. |
 | `README.md` | Introduce the project, status, stack, team responsibilities, references, and remaining setup. |
 | `.gitignore` | Exclude dependencies, generated builds, local environment files, logs, and OS metadata from future tracking. |
 | `.gitkeep` files | Empty markers preserving `public/` and the four component folders; they contain no comments or application data. |

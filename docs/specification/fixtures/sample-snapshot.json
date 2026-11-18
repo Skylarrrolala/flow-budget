@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "transactions": [
+    { "id": "t-01", "type": "income", "amountMinor": 50000, "category": "allowance", "description": "October allowance", "date": "2026-10-01" },
+    { "id": "t-02", "type": "expense", "amountMinor": 1250, "category": "food", "description": "Lunch", "date": "2026-10-03" },
+    { "id": "t-03", "type": "expense", "amountMinor": 450, "category": "transport", "description": "Tuk-tuk", "date": "2026-10-15" },
+    { "id": "t-04", "type": "expense", "amountMinor": 3999, "category": "food", "description": "Dinner", "date": "2026-10-31" },
+    { "id": "t-05", "type": "income", "amountMinor": 30000, "category": "freelance", "description": "Logo design", "date": "2026-10-31" },
+    { "id": "t-06", "type": "income", "amountMinor": 50000, "category": "allowance", "description": "November allowance", "date": "2026-11-01" },
+    { "id": "t-07", "type": "expense", "amountMinor": 2001, "category": "food", "description": "Groceries", "date": "2026-11-01" },
+    { "id": "t-08", "type": "expense", "amountMinor": 20000, "category": "housing", "description": "Rent share", "date": "2026-11-05" },
+    { "id": "t-09", "type": "expense", "amountMinor": 1500, "category": "entertainment", "description": "Movie", "date": "2026-11-12" },
+    { "id": "t-10", "type": "expense", "amountMinor": 1750, "category": "food", "description": "Coffee and lunch", "date": "2026-11-18" },
+    { "id": "t-11", "type": "expense", "amountMinor": 2500, "category": "education", "description": "", "date": "2026-11-18" },
+    { "id": "t-12", "type": "income", "amountMinor": 1000, "category": "other-income", "description": "Sold old phone case", "date": "2026-11-10" },
+    { "id": "t-13", "type": "expense", "amountMinor": 4500, "category": "shopping", "description": "Shoes", "date": "2026-09-20" },
+    { "id": "t-14", "type": "income", "amountMinor": 50000, "category": "allowance", "description": "September allowance", "date": "2026-09-01" }
+  ],
+  "budgets": [
+    { "id": "b-01", "category": "food", "month": "2026-11", "limitMinor": 5000 },
+    { "id": "b-02", "category": "entertainment", "month": "2026-11", "limitMinor": 1000 },
+    { "id": "b-03", "category": "housing", "month": "2026-11", "limitMinor": 20000 },
+    { "id": "b-04", "category": "food", "month": "2026-10", "limitMinor": 5000 },
+    { "id": "b-05", "category": "transport", "month": "2026-12", "limitMinor": 3000 },
+    { "id": "b-06", "category": "shopping", "month": "2026-11", "limitMinor": 3000 }
+  ],
+  "goals": [
+    {
+      "id": "g-01",
+      "name": "Emergency fund",
+      "targetAmountMinor": 100000,
+      "targetDate": "2027-06-30",
+      "contributions": [
+        { "id": "c-01", "amountMinor": 10000, "date": "2026-10-05" },
+        { "id": "c-02", "amountMinor": 15000, "date": "2026-11-02" }
+      ]
+    },
+    {
+      "id": "g-02",
+      "name": "New laptop",
+      "targetAmountMinor": 80000,
+      "targetDate": null,
+      "contributions": [
+        { "id": "c-03", "amountMinor": 50000, "date": "2026-09-15" },
+        { "id": "c-04", "amountMinor": 38000, "date": "2026-11-15" }
+      ]
+    },
+    {
+      "id": "g-03",
+      "name": "Trip to Kampot",
+      "targetAmountMinor": 30000,
+      "targetDate": "2026-10-01",
+      "contributions": []
+    },
+    {
+      "id": "g-04",
+      "name": "Concert ticket",
+      "targetAmountMinor": 5000,
+      "targetDate": null,
+      "contributions": [
+        { "id": "c-05", "amountMinor": 5000, "date": "2026-11-10" }
+      ]
+    }
+  ],
+  "settings": { "currency": "USD", "theme": "dark" }
+}

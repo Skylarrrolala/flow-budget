@@ -73,5 +73,6 @@ The team guide plans reviewed PRs into `develop` and release approval before pro
 - [Technical Design Document](https://docs.google.com/document/d/1D7AKyv1Vnc7Vk-6_WcsIsArW1sSsRdoS97CYxMdZaLY/edit): frontend hierarchy, shared contracts, and module boundaries.
 - [Work Breakdown Structure](https://docs.google.com/spreadsheets/d/1yJ1o-4ZDTQG6k2BxUvF8Jv4M8fFhYwhVnpoF5QMppt4/edit): task owners, dependencies, acceptance checks, and evidence.
 - [Team Development Guide](https://docs.google.com/document/d/1N03xmlT3ymyNoWY32Dm3A3xlq28ozV-UydcLOHMjOas/edit): collaboration, ownership, review, and release rules.
+- [Specification package, Revision 1.2](docs/specification/README.md): the finalized SRS, data contracts, business rules, user journeys, rubric traceability matrix, decision log, and proposed WBS updates (finalized for implementation; team approval pending).
 
 The November 11, 2026 addenda clarify ownership and tracking. Pending team approvals remain pending; creating this scaffold does not approve the architecture or complete future work packages.
