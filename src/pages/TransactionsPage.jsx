@@ -1,6 +1,6 @@
-// Will organize transaction records, forms, filtering, and sorting.
 import { useState, useEffect } from 'react';
 import TransactionForm from '../components/forms/TransactionForm';
+import TransactionFilters from '../components/ui/TransactionFilters';
 import { formatMoney } from '../lib/money';
 import { formatDate } from '../lib/dates';
 
@@ -27,6 +27,11 @@ export default function TransactionsPage({ currency = 'USD' }) {
   const [editing, setEditing] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [toast, setToast] = useState(null);
+  const [filters, setFilters] = useState({
+    type: 'all',
+    category: 'all',
+    sortBy: 'date-desc',
+  });
 
   // save to localStorage whenever transactions change
   useEffect(() => {
@@ -76,10 +81,30 @@ export default function TransactionsPage({ currency = 'USD' }) {
     setEditing(null);
   }
 
-  // sort newest first
-  const sorted = [...transactions].sort(
-    (a, b) => b.date.localeCompare(a.date)
-  );
+  // apply filters
+  let filtered = transactions;
+
+  if (filters.type !== 'all') {
+    filtered = filtered.filter((t) => t.type === filters.type);
+  }
+
+  if (filters.category !== 'all') {
+    filtered = filtered.filter((t) => t.category === filters.category);
+  }
+
+  // apply sort
+  const sorted = [...filtered].sort((a, b) => {
+    switch (filters.sortBy) {
+      case 'date-asc':
+        return a.date.localeCompare(b.date);
+      case 'amount-desc':
+        return b.amountMinor - a.amountMinor;
+      case 'amount-asc':
+        return a.amountMinor - b.amountMinor;
+      default:
+        return b.date.localeCompare(a.date);
+    }
+  });
 
   return (
     <div className="txn-page">
@@ -100,6 +125,8 @@ export default function TransactionsPage({ currency = 'USD' }) {
           + Add Transaction
         </button>
       )}
+
+      <TransactionFilters filters={filters} onChange={setFilters} />
 
       <div className="txn-list">
         {sorted.length === 0 && (
