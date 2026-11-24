@@ -1,8 +1,8 @@
 // Will compose the application shell, shared finance provider, and routing.
-import TransactionsPage from './pages/TransactionsPage';
+import AppRoutes from './routes/AppRoutes';
 
 function App() {
-  return <TransactionsPage />;
+  return <AppRoutes />;
 }
 
 export default App;

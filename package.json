@@ -22,7 +22,9 @@
   "homepage": "https://github.com/Skylarrrolala/flow-budget#readme",
   "dependencies": {
     "react": "^19.3.1",
-    "react-dom": "^19.3.1"
+    "react-dom": "^19.3.1",
+    "react-router-dom": "^7.18.7",
+    "recharts": "^3.11.1"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^6.3.0",
