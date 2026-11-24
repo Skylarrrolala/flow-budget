@@ -1,7 +1,8 @@
 // Will compose the application shell, shared finance provider, and routing.
+import TransactionsPage from './pages/TransactionsPage';
 
 function App() {
-  return <h1>FlowBudget</h1>;
+  return <TransactionsPage />;
 }
 
 export default App;
