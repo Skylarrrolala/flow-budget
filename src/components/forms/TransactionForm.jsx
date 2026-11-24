@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { getCategoriesForType } from '../../data/categories';
 import { parseToMinor, minorToInput } from '../../lib/money';
 import { todayString } from '../../lib/dates';
-import './TransactionForm.css';
 
 /*
   TransactionForm — used for both adding and editing.
