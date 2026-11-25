@@ -1,28 +1,19 @@
-import { Link, useLocation } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
+
+const NAV_ITEMS = [
+  { to: '/dashboard', label: 'Dashboard', icon: '📊' },
+  { to: '/transactions', label: 'Transactions', icon: '💳' },
+  { to: '/budgets', label: 'Budgets', icon: '📋' },
+  { to: '/goals', label: 'Goals', icon: '🎯' },
+  { to: '/settings', label: 'Settings', icon: '⚙️' },
+];
 
 export default function Navbar() {
-  const location = useLocation();
-
-  function isActive(path) {
-    return location.pathname === path;
-  }
-
   return (
-    <nav>
-      <strong>FlowBudget</strong>
-      <div>
-        <Link to="/dashboard" style={{ fontWeight: isActive('/dashboard') ? 'bold' : 'normal' }}>
-          Dashboard
-        </Link>
-        {' | '}
-        <Link to="/transactions" style={{ fontWeight: isActive('/transactions') ? 'bold' : 'normal' }}>
-          Transactions
-        </Link>
-        {' | '}
-        <Link to="/budgets" style={{ fontWeight: isActive('/budgets') ? 'bold' : 'normal' }}>
-          Budgets
-        </Link>
+    <header className="lg:hidden sticky top-0 z-40 bg-white dark:bg-surface-900 border-b border-surface-200 dark:border-surface-700">
+      <div className="flex items-center justify-between px-4 h-14">
+        <h1 className="text-lg font-bold text-primary-600 dark:text-primary-400">FlowBudget</h1>
       </div>
-    </nav>
+    </header>
   );
 }

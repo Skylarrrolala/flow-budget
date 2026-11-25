@@ -1,7 +1,10 @@
-// Will organize monthly category budgets and spending progress.
 import { useState, useEffect } from 'react';
 import BudgetForm from '../components/forms/BudgetForm';
 import { formatMoney } from '../lib/money';
+import Card from '../components/ui/Card';
+import ProgressBar from '../components/ui/ProgressBar';
+import ConfirmDialog from '../components/ui/ConfirmDialog';
+import EmptyState from '../components/ui/EmptyState';
 
 const BUDGET_KEY = 'flowbudget_budgets';
 const TXN_KEY = 'flowbudget_transactions';
@@ -19,7 +22,6 @@ function saveBudgets(budgets) {
   localStorage.setItem(BUDGET_KEY, JSON.stringify(budgets));
 }
 
-// pull transactions from localStorage to calculate spending
 function loadTransactions() {
   try {
     const data = localStorage.getItem(TXN_KEY);
@@ -29,7 +31,6 @@ function loadTransactions() {
   }
 }
 
-// add up all expense transactions for a given month
 function getMonthlySpending(transactions, month) {
   return transactions
     .filter((t) => t.type === 'expense' && t.date.startsWith(month))
@@ -40,16 +41,15 @@ export default function BudgetsPage({ currency = 'USD' }) {
   const [budgets, setBudgets] = useState(loadBudgets);
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
   const [toast, setToast] = useState(null);
 
   const transactions = loadTransactions();
 
-  // save budgets to localStorage
   useEffect(() => {
     saveBudgets(budgets);
   }, [budgets]);
 
-  // auto-hide toast
   useEffect(() => {
     if (!toast) return;
     const timer = setTimeout(() => setToast(null), 2500);
@@ -58,19 +58,16 @@ export default function BudgetsPage({ currency = 'USD' }) {
 
   function handleSave(budget) {
     if (editing) {
-      setBudgets((prev) =>
-        prev.map((b) => (b.id === budget.id ? budget : b))
-      );
-      setToast({ message: 'Budget updated!', type: 'success' });
+      setBudgets((prev) => prev.map((b) => (b.id === budget.id ? budget : b)));
+      setToast('Budget updated!');
     } else {
-      // check if a budget for this month already exists
       const exists = budgets.find((b) => b.month === budget.month);
       if (exists) {
-        setToast({ message: 'Budget for this month already exists!', type: 'delete' });
+        setToast('Budget for this month already exists!');
         return;
       }
       setBudgets((prev) => [budget, ...prev]);
-      setToast({ message: 'Budget set!', type: 'success' });
+      setToast('Budget set!');
     }
     setShowForm(false);
     setEditing(null);
@@ -81,9 +78,10 @@ export default function BudgetsPage({ currency = 'USD' }) {
     setShowForm(true);
   }
 
-  function handleDelete(budget) {
-    setBudgets((prev) => prev.filter((b) => b.id !== budget.id));
-    setToast({ message: 'Budget removed.', type: 'delete' });
+  function confirmDelete() {
+    setBudgets((prev) => prev.filter((b) => b.id !== deleteTarget.id));
+    setToast('Budget removed.');
+    setDeleteTarget(null);
   }
 
   function cancelForm() {
@@ -91,87 +89,112 @@ export default function BudgetsPage({ currency = 'USD' }) {
     setEditing(null);
   }
 
-  // sort by month, newest first
-  const sorted = [...budgets].sort(
-    (a, b) => b.month.localeCompare(a.month)
-  );
+  const sorted = [...budgets].sort((a, b) => b.month.localeCompare(a.month));
 
   return (
     <div>
-      <h2>Monthly Budgets</h2>
-
-      {showForm ? (
-        <BudgetForm
-          onSave={handleSave}
-          onCancel={cancelForm}
-          editingBudget={editing}
-          currency={currency}
-        />
-      ) : (
-        <button onClick={() => setShowForm(true)}>
-          + Set Budget
-        </button>
-      )}
-
-      <div>
-        {sorted.length === 0 && (
-          <p>No budgets set yet.</p>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold text-surface-900 dark:text-surface-50">Monthly Budgets</h1>
+        {!showForm && (
+          <button
+            onClick={() => setShowForm(true)}
+            className="px-4 py-2.5 bg-primary-500 hover:bg-primary-600 text-white rounded-lg text-sm font-medium transition-colors"
+          >
+            + Set Budget
+          </button>
         )}
-
-        {sorted.map((budget) => {
-          const spent = getMonthlySpending(transactions, budget.month);
-          const remaining = budget.limitMinor - spent;
-          const overBudget = remaining < 0;
-          const percent = Math.min(
-            Math.round((spent / budget.limitMinor) * 100),
-            100
-          );
-
-          return (
-            <div key={budget.id}>
-              <div>
-                <strong>{budget.month}</strong>
-                <span>
-                  {formatMoney(spent, currency)} / {formatMoney(budget.limitMinor, currency)}
-                </span>
-              </div>
-
-              {/* simple progress bar */}
-              <div style={{ background: '#333', borderRadius: '4px', height: '8px', margin: '0.5rem 0' }}>
-                <div
-                  style={{
-                    width: `${percent}%`,
-                    height: '100%',
-                    borderRadius: '4px',
-                    background: overBudget ? '#e74c3c' : '#27ae60',
-                  }}
-                />
-              </div>
-
-              <div>
-                {overBudget ? (
-                  <span style={{ color: '#e74c3c' }}>
-                    Over budget by {formatMoney(Math.abs(remaining), currency)}
-                  </span>
-                ) : (
-                  <span>
-                    {formatMoney(remaining, currency)} remaining
-                  </span>
-                )}
-              </div>
-
-              <div>
-                <button onClick={() => handleEdit(budget)}>Edit</button>
-                <button onClick={() => handleDelete(budget)}>Delete</button>
-              </div>
-            </div>
-          );
-        })}
       </div>
 
+      {showForm && (
+        <Card className="mb-6">
+          <BudgetForm
+            onSave={handleSave}
+            onCancel={cancelForm}
+            editingBudget={editing}
+            currency={currency}
+          />
+        </Card>
+      )}
+
+      {sorted.length === 0 ? (
+        <EmptyState
+          icon="📋"
+          title="No budgets set yet"
+          description="Set a monthly budget to track your spending."
+          action={
+            !showForm && (
+              <button
+                onClick={() => setShowForm(true)}
+                className="px-4 py-2.5 bg-primary-500 hover:bg-primary-600 text-white rounded-lg text-sm font-medium transition-colors"
+              >
+                Set your first budget
+              </button>
+            )
+          }
+        />
+      ) : (
+        <div className="space-y-4">
+          {sorted.map((budget) => {
+            const spent = getMonthlySpending(transactions, budget.month);
+            const remaining = budget.limitMinor - spent;
+            const overBudget = remaining < 0;
+            const percent = budget.limitMinor > 0
+              ? Math.round((spent / budget.limitMinor) * 100)
+              : 0;
+
+            return (
+              <Card key={budget.id}>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-semibold text-surface-900 dark:text-surface-50">{budget.month}</h3>
+                  <span className="text-sm text-surface-600 dark:text-surface-400">
+                    {formatMoney(spent, currency)} / {formatMoney(budget.limitMinor, currency)}
+                  </span>
+                </div>
+
+                <ProgressBar
+                  percent={Math.min(percent, 100)}
+                  variant={overBudget ? 'danger' : percent >= 80 ? 'warning' : 'default'}
+                />
+
+                <div className="flex items-center justify-between mt-3">
+                  <span className={`text-sm font-medium ${overBudget ? 'text-danger-500' : 'text-surface-600 dark:text-surface-400'}`}>
+                    {overBudget
+                      ? `Over budget by ${formatMoney(Math.abs(remaining), currency)}`
+                      : `${formatMoney(remaining, currency)} remaining`}
+                  </span>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleEdit(budget)}
+                      className="text-xs px-3 py-1.5 rounded-lg border border-surface-300 dark:border-surface-600 text-surface-600 dark:text-surface-400 hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => setDeleteTarget(budget)}
+                      className="text-xs px-3 py-1.5 rounded-lg border border-danger-300 dark:border-danger-500/50 text-danger-500 hover:bg-danger-50 dark:hover:bg-danger-500/10 transition-colors"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              </Card>
+            );
+          })}
+        </div>
+      )}
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title="Delete Budget"
+        message={`Delete the budget for ${deleteTarget?.month}?`}
+        confirmLabel="Delete"
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleteTarget(null)}
+      />
+
       {toast && (
-        <div>
-          {toast.message}
+        <div className="fixed bottom-20 lg:bottom-6 left-1/2 -translate-x-1/2 z-50 bg-success-500 text-white px-5 py-3 rounded-lg shadow-lg text-sm font-medium">
+          {toast}
         </div>
       )}
     </div>

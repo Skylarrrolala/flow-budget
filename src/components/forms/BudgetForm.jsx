@@ -1,15 +1,6 @@
 import { useState, useEffect } from 'react';
 import { currentMonthString } from '../../lib/dates';
 
-/*
-  BudgetForm — set a monthly spending budget.
-
-  Props:
-    onSave(budget)        called with { month, limitMinor }
-    onCancel()            close the form
-    editingBudget         pass existing budget to edit
-    currency              'USD' or 'KHR'
-*/
 export default function BudgetForm({
   onSave,
   onCancel,
@@ -20,7 +11,6 @@ export default function BudgetForm({
   const [limit, setLimit] = useState('');
   const [error, setError] = useState('');
 
-  // pre-fill when editing
   useEffect(() => {
     if (editingBudget) {
       setMonth(editingBudget.month);
@@ -35,23 +25,16 @@ export default function BudgetForm({
   function handleSubmit(e) {
     e.preventDefault();
     const parsed = parseFloat(limit);
-
     if (!limit || isNaN(parsed) || parsed <= 0) {
       setError('Enter a positive budget amount.');
       return;
     }
-
     if (!month || !/^\d{4}-\d{2}$/.test(month)) {
       setError('Pick a valid month.');
       return;
     }
-
     setError('');
-
-    const limitMinor = currency === 'KHR'
-      ? Math.round(parsed)
-      : Math.round(parsed * 100);
-
+    const limitMinor = currency === 'KHR' ? Math.round(parsed) : Math.round(parsed * 100);
     onSave({
       id: editingBudget?.id || crypto.randomUUID(),
       month,
@@ -59,21 +42,28 @@ export default function BudgetForm({
     });
   }
 
+  const inputClass = 'w-full px-3 py-2.5 rounded-lg border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-800 text-surface-900 dark:text-surface-50 text-sm';
+
   return (
-    <form onSubmit={handleSubmit}>
-      <h3>{editingBudget ? 'Edit Budget' : 'Set Monthly Budget'}</h3>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <h3 className="text-lg font-semibold text-surface-900 dark:text-surface-50">
+        {editingBudget ? 'Edit Budget' : 'Set Monthly Budget'}
+      </h3>
 
       <div>
-        <label>Month</label>
+        <label className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1">Month</label>
         <input
           type="month"
           value={month}
           onChange={(e) => setMonth(e.target.value)}
+          className={inputClass}
         />
       </div>
 
       <div>
-        <label>Budget Limit ({currency === 'KHR' ? '៛' : '$'})</label>
+        <label className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1">
+          Budget Limit ({currency === 'KHR' ? '៛' : '$'})
+        </label>
         <input
           type="number"
           step={currency === 'KHR' ? '1' : '0.01'}
@@ -81,18 +71,28 @@ export default function BudgetForm({
           value={limit}
           onChange={(e) => setLimit(e.target.value)}
           placeholder={currency === 'KHR' ? '500000' : '1000.00'}
+          className={inputClass}
         />
       </div>
 
-      {error && <p>{error}</p>}
+      {error && <p className="text-xs text-danger-500">{error}</p>}
 
-      <div>
-        <button type="submit">
+      <div className="flex gap-3 pt-2">
+        {onCancel && (
+          <button
+            type="button"
+            onClick={onCancel}
+            className="flex-1 px-4 py-2.5 rounded-lg border border-surface-300 dark:border-surface-600 text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 text-sm font-medium transition-colors"
+          >
+            Cancel
+          </button>
+        )}
+        <button
+          type="submit"
+          className="flex-1 px-4 py-2.5 bg-primary-500 hover:bg-primary-600 text-white rounded-lg text-sm font-medium transition-colors"
+        >
           {editingBudget ? 'Save Changes' : 'Set Budget'}
         </button>
-        {onCancel && (
-          <button type="button" onClick={onCancel}>Cancel</button>
-        )}
       </div>
     </form>
   );
