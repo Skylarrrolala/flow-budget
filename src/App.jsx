@@ -1,7 +1,8 @@
 // Will compose the application shell, shared finance provider, and routing.
+import AppRoutes from './routes/AppRoutes';
 
 function App() {
-  return <h1>FlowBudget</h1>;
+  return <AppRoutes />;
 }
 
 export default App;
