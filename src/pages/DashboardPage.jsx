@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useFinance } from '../context/FinanceContext';
 import {
   PieChart, Pie, Tooltip, Legend, Cell,
   BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer,
@@ -7,17 +7,6 @@ import { formatMoney } from '../lib/money';
 import Card from '../components/ui/Card';
 import EmptyState from '../components/ui/EmptyState';
 
-const TXN_KEY = 'flowbudget_transactions';
-
-function loadTransactions() {
-  try {
-    const data = localStorage.getItem(TXN_KEY);
-    return data ? JSON.parse(data) : [];
-  } catch {
-    return [];
-  }
-}
-
 const COLORS = [
   '#3b82f6', '#ef4444', '#22c55e', '#f59e0b',
   '#8b5cf6', '#06b6d4', '#f97316', '#64748b',
@@ -25,7 +14,7 @@ const COLORS = [
 ];
 
 export default function DashboardPage({ currency = 'USD' }) {
-  const [transactions] = useState(loadTransactions);
+  const { transactions } = useFinance();
 
   const expenses = transactions.filter((t) => t.type === 'expense');
   const incomes = transactions.filter((t) => t.type === 'income');

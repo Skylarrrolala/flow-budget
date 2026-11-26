@@ -1,35 +1,11 @@
 import { useState, useEffect } from 'react';
+import { useFinance } from '../context/FinanceContext';
 import BudgetForm from '../components/forms/BudgetForm';
 import { formatMoney } from '../lib/money';
 import Card from '../components/ui/Card';
 import ProgressBar from '../components/ui/ProgressBar';
 import ConfirmDialog from '../components/ui/ConfirmDialog';
 import EmptyState from '../components/ui/EmptyState';
-
-const BUDGET_KEY = 'flowbudget_budgets';
-const TXN_KEY = 'flowbudget_transactions';
-
-function loadBudgets() {
-  try {
-    const data = localStorage.getItem(BUDGET_KEY);
-    return data ? JSON.parse(data) : [];
-  } catch {
-    return [];
-  }
-}
-
-function saveBudgets(budgets) {
-  localStorage.setItem(BUDGET_KEY, JSON.stringify(budgets));
-}
-
-function loadTransactions() {
-  try {
-    const data = localStorage.getItem(TXN_KEY);
-    return data ? JSON.parse(data) : [];
-  } catch {
-    return [];
-  }
-}
 
 function getMonthlySpending(transactions, month) {
   return transactions
@@ -38,17 +14,11 @@ function getMonthlySpending(transactions, month) {
 }
 
 export default function BudgetsPage({ currency = 'USD' }) {
-  const [budgets, setBudgets] = useState(loadBudgets);
+  const { budgets, transactions, addBudget, updateBudget, deleteBudget } = useFinance();
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [toast, setToast] = useState(null);
-
-  const transactions = loadTransactions();
-
-  useEffect(() => {
-    saveBudgets(budgets);
-  }, [budgets]);
 
   useEffect(() => {
     if (!toast) return;
@@ -58,7 +28,7 @@ export default function BudgetsPage({ currency = 'USD' }) {
 
   function handleSave(budget) {
     if (editing) {
-      setBudgets((prev) => prev.map((b) => (b.id === budget.id ? budget : b)));
+      updateBudget(budget.id, budget);
       setToast('Budget updated!');
     } else {
       const exists = budgets.find((b) => b.month === budget.month);
@@ -66,7 +36,7 @@ export default function BudgetsPage({ currency = 'USD' }) {
         setToast('Budget for this month already exists!');
         return;
       }
-      setBudgets((prev) => [budget, ...prev]);
+      addBudget(budget);
       setToast('Budget set!');
     }
     setShowForm(false);
@@ -79,7 +49,7 @@ export default function BudgetsPage({ currency = 'USD' }) {
   }
 
   function confirmDelete() {
-    setBudgets((prev) => prev.filter((b) => b.id !== deleteTarget.id));
+    deleteBudget(deleteTarget.id);
     setToast('Budget removed.');
     setDeleteTarget(null);
   }
