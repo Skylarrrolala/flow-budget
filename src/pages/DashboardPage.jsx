@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
   PieChart, Pie, Tooltip, Legend, Cell,
   BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer,
@@ -25,11 +25,7 @@ const COLORS = [
 ];
 
 export default function DashboardPage({ currency = 'USD' }) {
-  const [transactions, setTransactions] = useState([]);
-
-  useEffect(() => {
-    setTransactions(loadTransactions());
-  }, []);
+  const [transactions] = useState(loadTransactions);
 
   const expenses = transactions.filter((t) => t.type === 'expense');
   const incomes = transactions.filter((t) => t.type === 'income');

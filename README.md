@@ -55,6 +55,14 @@ The application is browser-only. A backend, authentication, banking integration,
 
 4. Open http://localhost:5173 in your browser
 
+### Checks
+
+```bash
+npm run lint
+npm test
+npm run build
+```
+
 ## Folder Organization
 
 | Path | Responsibility |

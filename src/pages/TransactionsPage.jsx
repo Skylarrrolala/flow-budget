@@ -102,6 +102,7 @@ export default function TransactionsPage({ currency = 'USD' }) {
       {showForm && (
         <Card className="mb-6">
           <TransactionForm
+            key={`${editing?.id ?? 'new'}-${currency}`}
             onSave={handleSave}
             onCancel={cancelForm}
             editingTransaction={editing}

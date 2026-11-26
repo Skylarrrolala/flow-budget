@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { getCategoriesForType } from '../../data/categories';
 import { parseToMinor, minorToInput } from '../../lib/money';
 import { todayString } from '../../lib/dates';
@@ -9,22 +9,13 @@ export default function TransactionForm({
   editingTransaction = null,
   currency = 'USD',
 }) {
-  const [type, setType] = useState('expense');
-  const [amount, setAmount] = useState('');
-  const [category, setCategory] = useState('');
-  const [description, setDescription] = useState('');
-  const [date, setDate] = useState(todayString());
+  const [type, setType] = useState(editingTransaction?.type ?? 'expense');
+  const [amount, setAmount] = useState(() => editingTransaction
+    ? minorToInput(editingTransaction.amountMinor, currency) : '');
+  const [category, setCategory] = useState(editingTransaction?.category ?? '');
+  const [description, setDescription] = useState(editingTransaction?.description ?? '');
+  const [date, setDate] = useState(() => editingTransaction?.date ?? todayString());
   const [errors, setErrors] = useState({});
-
-  useEffect(() => {
-    if (editingTransaction) {
-      setType(editingTransaction.type);
-      setAmount(minorToInput(editingTransaction.amountMinor, currency));
-      setCategory(editingTransaction.category);
-      setDescription(editingTransaction.description || '');
-      setDate(editingTransaction.date);
-    }
-  }, [editingTransaction, currency]);
 
   function handleTypeChange(newType) {
     setType(newType);

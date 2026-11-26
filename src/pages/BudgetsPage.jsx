@@ -108,6 +108,7 @@ export default function BudgetsPage({ currency = 'USD' }) {
       {showForm && (
         <Card className="mb-6">
           <BudgetForm
+            key={`${editing?.id ?? 'new'}-${currency}`}
             onSave={handleSave}
             onCancel={cancelForm}
             editingBudget={editing}

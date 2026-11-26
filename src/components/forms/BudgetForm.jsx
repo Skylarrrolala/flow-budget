@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { currentMonthString } from '../../lib/dates';
+import { minorToInput } from '../../lib/money';
 
 export default function BudgetForm({
   onSave,
@@ -7,20 +8,10 @@ export default function BudgetForm({
   editingBudget = null,
   currency = 'USD',
 }) {
-  const [month, setMonth] = useState(currentMonthString());
-  const [limit, setLimit] = useState('');
+  const [month, setMonth] = useState(() => editingBudget?.month ?? currentMonthString());
+  const [limit, setLimit] = useState(() => editingBudget
+    ? minorToInput(editingBudget.limitMinor, currency) : '');
   const [error, setError] = useState('');
-
-  useEffect(() => {
-    if (editingBudget) {
-      setMonth(editingBudget.month);
-      if (currency === 'KHR') {
-        setLimit(String(editingBudget.limitMinor));
-      } else {
-        setLimit((editingBudget.limitMinor / 100).toFixed(2));
-      }
-    }
-  }, [editingBudget, currency]);
 
   function handleSubmit(e) {
     e.preventDefault();
