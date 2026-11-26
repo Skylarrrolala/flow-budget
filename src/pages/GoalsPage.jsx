@@ -61,7 +61,8 @@ export default function GoalsPage() {
 
     const errs = validateGoal(goalData, goals);
     if (isNaN(targetAmountMinor)) {
-      errs.targetAmount = 'Enter a positive target amount.';
+      errs.targetAmount = currency === 'KHR'
+        ? 'Enter a positive amount in whole riel.' : 'Enter a positive target amount.';
     }
     setErrors(errs);
     if (Object.keys(errs).length > 0) return;
@@ -79,7 +80,10 @@ export default function GoalsPage() {
     const amountMinor = parseToMinor(raw, currency);
     const error = validateContribution(amountMinor);
     if (error) {
-      setContribErrors((prev) => ({ ...prev, [goalId]: error }));
+      setContribErrors((prev) => ({
+        ...prev,
+        [goalId]: currency === 'KHR' ? 'Enter a positive amount in whole riel.' : error,
+      }));
       return;
     }
     setContribErrors((prev) => ({ ...prev, [goalId]: null }));
@@ -190,7 +194,7 @@ export default function GoalsPage() {
                   <input
                     type="number"
                     step={currency === 'KHR' ? '1' : '0.01'}
-                    min="0.01"
+                    min={currency === 'KHR' ? '1' : '0.01'}
                     placeholder={currency === 'KHR' ? 'Amount (៛)' : 'Amount ($)'}
                     value={contributionAmounts[goal.id] || ''}
                     onChange={(e) =>
@@ -284,7 +288,7 @@ export default function GoalsPage() {
             <input
               type="number"
               step={currency === 'KHR' ? '1' : '0.01'}
-              min="0.01"
+              min={currency === 'KHR' ? '1' : '0.01'}
               value={targetAmount}
               onChange={(e) => setTargetAmount(e.target.value)}
               placeholder={currency === 'KHR' ? '500000' : '1000.00'}

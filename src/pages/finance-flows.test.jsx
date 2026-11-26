@@ -3,12 +3,20 @@ import { act } from 'react';
 import { createRoot } from 'react-dom/client';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { FinanceProvider } from '../context/FinanceContext';
+import TransactionForm from '../components/forms/TransactionForm';
+import BudgetForm from '../components/forms/BudgetForm';
+import GoalsPage from './GoalsPage';
 import TransactionsPage from './TransactionsPage';
 import BudgetsPage from './BudgetsPage';
 
+const goal = {
+  id: 'goal-1', name: 'Emergency fund', targetAmountMinor: 10000, targetDate: null,
+  contributions: [{ id: 'contribution-1', amountMinor: 2500, date: '2026-11-25' }],
+};
 const records = {
   transactions: [{ id: 'txn-1', type: 'expense', amountMinor: 500, category: 'Food', description: '', date: '2026-11-25' }],
   budgets: [{ id: 'budget-1', month: '2026-11', limitMinor: 10000 }],
+  goals: [goal],
 };
 let container;
 let root;
@@ -31,6 +39,12 @@ async function render(children) {
   await act(() => root.render(<FinanceProvider>{children}</FinanceProvider>));
 }
 
+async function click(label, scope = container) {
+  const button = [...scope.querySelectorAll('button')].find((item) => label.test(item.textContent.trim()));
+  expect(button, `Button matching ${label}`).toBeDefined();
+  await act(() => button.click());
+}
+
 async function enterAmount(value) {
   const input = container.querySelector('input[type="number"]');
   await act(() => {
@@ -38,6 +52,49 @@ async function enterAmount(value) {
     input.dispatchEvent(new Event('input', { bubbles: true }));
   });
 }
+
+describe('amount inputs', () => {
+  it('rejects fractional KHR contributions and persists a whole-riel contribution', async () => {
+    localStorage.setItem('flowbudget_settings', JSON.stringify({ theme: 'dark', currency: 'KHR' }));
+    localStorage.setItem('flowbudget_goals', JSON.stringify([goal]));
+    await render(<GoalsPage />);
+    await enterAmount('1.5');
+    await click(/^\+ Add$/);
+    expect(container.textContent).toContain('Enter a positive amount in whole riel.');
+    expect(JSON.parse(localStorage.getItem('flowbudget_goals'))[0].contributions).toEqual(goal.contributions);
+
+    await enterAmount('25000');
+    await click(/^\+ Add$/);
+    expect(JSON.parse(localStorage.getItem('flowbudget_goals'))[0].contributions[0].amountMinor).toBe(25000);
+    expect(JSON.parse(localStorage.getItem('flowbudget_goals'))[0].contributions).toHaveLength(2);
+  });
+
+  it.each(['transaction', 'budget', 'goal', 'contribution'])('accepts whole KHR and rejects fractional/zero amounts in the %s input', async (kind) => {
+    localStorage.setItem('flowbudget_settings', JSON.stringify({ theme: 'dark', currency: 'KHR' }));
+    if (kind === 'contribution') localStorage.setItem('flowbudget_goals', JSON.stringify([goal]));
+    const form = kind === 'transaction' ? <TransactionForm currency="KHR" />
+      : kind === 'budget' ? <BudgetForm currency="KHR" /> : <GoalsPage />;
+    await render(form);
+    if (kind === 'goal') await click(/Create Goal$/);
+    const input = container.querySelector('input[type="number"]');
+
+    input.value = '25000';
+    expect(input.checkValidity()).toBe(true);
+    input.value = '25000.5';
+    expect(input.checkValidity()).toBe(false);
+    input.value = '0';
+    expect(input.checkValidity()).toBe(false);
+  });
+
+  it('still accepts USD cents', async () => {
+    await render(<TransactionForm currency="USD" />);
+    const input = container.querySelector('input[type="number"]');
+    input.value = '0.01';
+    expect(input.checkValidity()).toBe(true);
+    input.value = '1.001';
+    expect(input.checkValidity()).toBe(false);
+  });
+});
 
 describe('editing records', () => {
   it.each(['transactions', 'budgets'])('switches the open %s form to the selected record and saves the right amount', async (kind) => {

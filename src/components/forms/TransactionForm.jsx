@@ -102,7 +102,7 @@ export default function TransactionForm({
         <input
           type="number"
           step={currency === 'KHR' ? '1' : '0.01'}
-          min="0.01"
+          min={currency === 'KHR' ? '1' : '0.01'}
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
           placeholder={currency === 'KHR' ? '25000' : '12.50'}

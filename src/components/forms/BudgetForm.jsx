@@ -58,7 +58,7 @@ export default function BudgetForm({
         <input
           type="number"
           step={currency === 'KHR' ? '1' : '0.01'}
-          min="0.01"
+          min={currency === 'KHR' ? '1' : '0.01'}
           value={limit}
           onChange={(e) => setLimit(e.target.value)}
           placeholder={currency === 'KHR' ? '500000' : '1000.00'}
