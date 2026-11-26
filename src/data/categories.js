@@ -2,6 +2,7 @@
 export const INCOME_CATEGORIES = [
   'Salary',
   'Freelance',
+  'Allowance',
   'Investment',
   'Gift',
   'Other Income',

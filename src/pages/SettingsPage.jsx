@@ -10,11 +10,13 @@ import SegmentedControl from '../components/ui/SegmentedControl';
 export default function SettingsPage() {
   const {
     settings, transactions, budgets, goals, toggleTheme, setCurrency, handleExport, factoryReset,
+    loadDemoData,
   } = useFinance();
 
   const [showCurrencyConfirm, setShowCurrencyConfirm] = useState(false);
   const [pendingCurrency, setPendingCurrency] = useState(null);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [showDemoDataConfirm, setShowDemoDataConfirm] = useState(false);
 
   function handleCurrencyChange(newCurrency) {
     if (newCurrency === settings.currency) return;
@@ -33,6 +35,20 @@ export default function SettingsPage() {
     setCurrency(pendingCurrency);
     setShowCurrencyConfirm(false);
     setPendingCurrency(null);
+  }
+
+  function handleDemoDataLoad() {
+    const hasRecords = transactions.length > 0 || budgets.length > 0 || goals.length > 0;
+    if (hasRecords) {
+      setShowDemoDataConfirm(true);
+      return;
+    }
+    loadDemoData();
+  }
+
+  function confirmDemoDataLoad() {
+    loadDemoData();
+    setShowDemoDataConfirm(false);
   }
 
   return (
@@ -102,6 +118,18 @@ export default function SettingsPage() {
               </Button>
             </div>
 
+            <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm font-medium text-surface-700 dark:text-surface-300">Load Demo Data</p>
+                <p className="text-xs text-surface-500 dark:text-surface-400">
+                  Replace your data with 203 USD demo transactions, 3 budgets, and 3 goals.
+                </p>
+              </div>
+              <Button variant="secondary" onClick={handleDemoDataLoad}>
+                Load demo data
+              </Button>
+            </div>
+
             <div className="border-t border-surface-200 dark:border-surface-700 pt-4">
               <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
@@ -163,6 +191,15 @@ export default function SettingsPage() {
           Export data first
         </Button>
       </ConfirmDialog>
+
+      <ConfirmDialog
+        open={showDemoDataConfirm}
+        title="Replace with Demo Data?"
+        message="This replaces all transactions, budgets, and goals with 203 USD demo transactions, 3 budgets, and 3 goals. Your current theme will be preserved and your currency will switch to USD."
+        confirmLabel="Replace with Demo Data"
+        onConfirm={confirmDemoDataLoad}
+        onCancel={() => setShowDemoDataConfirm(false)}
+      />
     </div>
   );
 }

@@ -3,6 +3,8 @@ import { act } from 'react';
 import { createRoot } from 'react-dom/client';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { FinanceProvider } from '../context/FinanceContext';
+import { DEMO_TRANSACTIONS } from '../data/demoData';
+import { currentMonthString } from '../lib/dates';
 import TransactionForm from '../components/forms/TransactionForm';
 import BudgetForm from '../components/forms/BudgetForm';
 import GoalsPage from './GoalsPage';
@@ -11,6 +13,16 @@ import TransactionsPage from './TransactionsPage';
 import BudgetsPage from './BudgetsPage';
 
 const readSaved = () => JSON.parse(localStorage.getItem('flowbudget:v1'));
+
+function expectDemoTransactions(transactions) {
+  const withoutDate = (transaction) => Object.fromEntries(
+    Object.entries(transaction).filter(([key]) => key !== 'date')
+  );
+  expect(transactions).toHaveLength(DEMO_TRANSACTIONS.length);
+  expect(transactions.map(withoutDate)).toEqual(
+    DEMO_TRANSACTIONS.map(withoutDate)
+  );
+}
 
 const goal = {
   id: 'goal-1', name: 'Emergency fund', targetAmountMinor: 10000, targetDate: null,
@@ -110,6 +122,82 @@ describe('currency changes (WBS 1.3.6.2)', () => {
     await click(/USD$/);
     expect(container.querySelector('[role="alertdialog"]')).toBeNull();
     expect(readSaved().goals).toEqual(records.goals);
+  });
+});
+
+describe('demo data', () => {
+  it('confirms replacement and preserves existing data when canceled', async () => {
+    for (const [kind, values] of Object.entries(records)) {
+      localStorage.setItem(`flowbudget_${kind}`, JSON.stringify(values));
+    }
+    localStorage.setItem('flowbudget_settings', JSON.stringify({ currency: 'KHR', theme: 'light' }));
+    await render(<SettingsPage />);
+
+    await click(/Load demo data/i);
+    const dialog = container.querySelector('[role="alertdialog"]');
+    expect(dialog.textContent).toContain('203 USD demo transactions, 3 budgets, and 3 goals');
+    await click(/^Cancel$/, dialog);
+    expect(readSaved()).toMatchObject({ ...records, settings: { currency: 'KHR', theme: 'light' } });
+
+    await click(/Load demo data/i);
+    await click(/Replace with Demo Data/i, container.querySelector('[role="alertdialog"]'));
+    const saved = readSaved();
+    expectDemoTransactions(saved.transactions);
+    expect(saved.budgets).toHaveLength(3);
+    expect(saved.budgets.every((budget) => budget.month === currentMonthString())).toBe(true);
+    expect(saved.goals).toHaveLength(3);
+    expect(saved.goals.find((goal) => goal.id === 'demo-goal-2').targetDate).toBe('');
+    expect(saved).toMatchObject({
+      settings: { currency: 'USD', theme: 'light' },
+    });
+  });
+
+  it('loads the demo directly when there are no existing records', async () => {
+    await render(<SettingsPage />);
+    await click(/Load demo data/i);
+    expect(container.querySelector('[role="alertdialog"]')).toBeNull();
+    const saved = readSaved();
+    expectDemoTransactions(saved.transactions);
+    expect(saved.budgets).toHaveLength(3);
+    expect(saved.budgets.every((budget) => budget.month === currentMonthString())).toBe(true);
+    expect(saved.goals).toHaveLength(3);
+    expect(saved.goals.find((goal) => goal.id === 'demo-goal-2').targetDate).toBe('');
+    expect(saved).toMatchObject({
+      settings: { currency: 'USD', theme: 'dark' },
+    });
+  });
+
+  it("aligns the newest date to today and preserves every transaction's relative date", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 11, 3, 12));
+    try {
+      await render(<SettingsPage />);
+      await click(/Load demo data/i);
+
+      const transactions = readSaved().transactions;
+      expect(transactions[0].date).toBe('2026-12-03');
+      expect(transactions[transactions.length - 1].date).toBe('2026-09-08');
+      expectDemoTransactions(transactions);
+      const saved = readSaved();
+      expect(saved.budgets.map((budget) => budget.month)).toEqual(['2026-12', '2026-12', '2026-12']);
+      expect(saved.goals.find((goal) => goal.id === 'demo-goal-1').targetDate).toBe('2027-03-08');
+      expect(saved.goals.find((goal) => goal.id === 'demo-goal-2').targetDate).toBe('');
+      expect(saved.goals.find((goal) => goal.id === 'demo-goal-3').targetDate).toBe('2026-11-22');
+      expect(
+        saved.goals.find((goal) => goal.id === 'demo-goal-2').contributions
+          .find((contribution) => contribution.id === 'demo-contribution-5').date
+      ).toBe('2026-11-26');
+
+      const originalNewest = Date.parse(`${DEMO_TRANSACTIONS[0].date}T00:00:00Z`);
+      const shiftedNewest = Date.parse(`${transactions[0].date}T00:00:00Z`);
+      transactions.forEach((transaction, index) => {
+        const originalDate = Date.parse(`${DEMO_TRANSACTIONS[index].date}T00:00:00Z`);
+        const shiftedDate = Date.parse(`${transaction.date}T00:00:00Z`);
+        expect(shiftedDate - shiftedNewest).toBe(originalDate - originalNewest);
+      });
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
 
