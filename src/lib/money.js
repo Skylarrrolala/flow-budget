@@ -1,12 +1,12 @@
 // Will handle integer minor-unit amounts and USD or KHR display formatting.
 
-/** Convert input like "12.50" to minor units "1250", Return NaN if input isn't a valid positive number. */
+/** Convert positive amounts to minor units. KHR input must be whole riel. */
 export function parseToMinor(input, currency = 'USD') {
     const num = parseFloat(input);
     if (isNaN(num) || num <= 0) return NaN;
 
     if (currency === 'KHR') {
-        return Math.round(num);
+        return Number.isInteger(num) ? num : NaN;
     }
     return Math.round(num * 100);
 }

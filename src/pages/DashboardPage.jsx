@@ -1,9 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
-  PieChart, Pie, Tooltip, Legend,
+  PieChart, Pie, Tooltip, Legend, Cell,
   BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer,
 } from 'recharts';
 import { formatMoney } from '../lib/money';
+import Card from '../components/ui/Card';
+import EmptyState from '../components/ui/EmptyState';
 
 const TXN_KEY = 'flowbudget_transactions';
 
@@ -16,56 +18,40 @@ function loadTransactions() {
   }
 }
 
-// colors for the pie chart slices
 const COLORS = [
-  '#e74c3c', '#3498db', '#2ecc71', '#f39c12',
-  '#9b59b6', '#1abc9c', '#e67e22', '#34495e',
-  '#e91e63',
+  '#3b82f6', '#ef4444', '#22c55e', '#f59e0b',
+  '#8b5cf6', '#06b6d4', '#f97316', '#64748b',
+  '#ec4899',
 ];
 
 export default function DashboardPage({ currency = 'USD' }) {
-  const [transactions, setTransactions] = useState([]);
+  const [transactions] = useState(loadTransactions);
 
-  // load transactions on mount
-  useEffect(() => {
-    setTransactions(loadTransactions());
-  }, []);
-
-  // split into income and expense
   const expenses = transactions.filter((t) => t.type === 'expense');
   const incomes = transactions.filter((t) => t.type === 'income');
-
   const totalExpense = expenses.reduce((sum, t) => sum + t.amountMinor, 0);
   const totalIncome = incomes.reduce((sum, t) => sum + t.amountMinor, 0);
+  const net = totalIncome - totalExpense;
 
-  // group expenses by category for pie chart
   const expenseByCategory = {};
   expenses.forEach((t) => {
-    if (!expenseByCategory[t.category]) {
-      expenseByCategory[t.category] = 0;
-    }
+    if (!expenseByCategory[t.category]) expenseByCategory[t.category] = 0;
     expenseByCategory[t.category] += t.amountMinor;
   });
 
-  const pieData = Object.entries(expenseByCategory).map(
-    ([name, value]) => ({ name, value })
-  );
+  const pieData = Object.entries(expenseByCategory).map(([name, value]) => ({
+    name,
+    value: currency === 'KHR' ? value : value / 100,
+  }));
 
-  // group by month for bar chart
   const monthlyData = {};
   transactions.forEach((t) => {
     const month = t.date.slice(0, 7);
-    if (!monthlyData[month]) {
-      monthlyData[month] = { month, income: 0, expense: 0 };
-    }
-    if (t.type === 'income') {
-      monthlyData[month].income += t.amountMinor;
-    } else {
-      monthlyData[month].expense += t.amountMinor;
-    }
+    if (!monthlyData[month]) monthlyData[month] = { month, income: 0, expense: 0 };
+    if (t.type === 'income') monthlyData[month].income += t.amountMinor;
+    else monthlyData[month].expense += t.amountMinor;
   });
 
-  // convert to array and sort by month
   const barData = Object.values(monthlyData)
     .sort((a, b) => a.month.localeCompare(b.month))
     .map((d) => ({
@@ -74,80 +60,82 @@ export default function DashboardPage({ currency = 'USD' }) {
       Expense: currency === 'KHR' ? d.expense : d.expense / 100,
     }));
 
-  // convert pie values and add colors directly to data
-  const pieDisplay = pieData.map((d, index) => ({
-    ...d,
-    value: currency === 'KHR' ? d.value : d.value / 100,
-    fill: COLORS[index % COLORS.length],
-  }));
-
   return (
     <div>
-      <h2>Dashboard</h2>
+      <h1 className="text-2xl font-bold text-surface-900 dark:text-surface-50 mb-6">Dashboard</h1>
 
-      {/* summary totals */}
-      <div>
-        <p>Total Income: {formatMoney(totalIncome, currency)}</p>
-        <p>Total Expenses: {formatMoney(totalExpense, currency)}</p>
-        <p>
-          Net: {formatMoney(Math.abs(totalIncome - totalExpense), currency)}
-          {totalIncome >= totalExpense ? ' surplus' : ' deficit'}
-        </p>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <Card>
+          <p className="text-xs font-medium text-surface-500 dark:text-surface-400 uppercase tracking-wide mb-1">Income</p>
+          <p className="text-xl font-bold text-success-600 dark:text-success-500">{formatMoney(totalIncome, currency)}</p>
+        </Card>
+        <Card>
+          <p className="text-xs font-medium text-surface-500 dark:text-surface-400 uppercase tracking-wide mb-1">Expenses</p>
+          <p className="text-xl font-bold text-danger-500">{formatMoney(totalExpense, currency)}</p>
+        </Card>
+        <Card>
+          <p className="text-xs font-medium text-surface-500 dark:text-surface-400 uppercase tracking-wide mb-1">Net Balance</p>
+          <p className={`text-xl font-bold ${net >= 0 ? 'text-success-600 dark:text-success-500' : 'text-danger-500'}`}>
+            {net >= 0 ? '+' : '-'}{formatMoney(Math.abs(net), currency)}
+          </p>
+        </Card>
       </div>
 
-      {transactions.length === 0 && (
-        <p>No transactions yet. Add some to see charts!</p>
-      )}
+      {transactions.length === 0 ? (
+        <EmptyState
+          icon="📊"
+          title="No transactions yet"
+          description="Add some transactions to see your financial overview."
+        />
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {pieData.length > 0 && (
+            <Card>
+              <h2 className="text-lg font-semibold text-surface-900 dark:text-surface-50 mb-4">Expense Breakdown</h2>
+              <ResponsiveContainer width="100%" height={280}>
+                <PieChart>
+                  <Pie
+                    data={pieData}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={90}
+                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  >
+                    {pieData.map((_, i) => (
+                      <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    formatter={(val) => formatMoney(currency === 'KHR' ? val : Math.round(val * 100), currency)}
+                    contentStyle={{ backgroundColor: 'var(--color-surface-800)', border: 'none', borderRadius: '8px', color: '#fff' }}
+                  />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </Card>
+          )}
 
-      {/* expense breakdown pie chart */}
-      {pieDisplay.length > 0 && (
-        <div>
-          <h3>Expense Breakdown</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={pieDisplay}
-                dataKey="value"
-                nameKey="name"
-                cx="50%"
-                cy="50%"
-                outerRadius={100}
-                label={({ name, percent }) =>
-                  `${name} ${(percent * 100).toFixed(0)}%`
-                }
-              />
-              <Tooltip
-                formatter={(val) => formatMoney(
-                  currency === 'KHR' ? val : Math.round(val * 100),
-                  currency
-                )}
-              />
-              <Legend />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
-      )}
-
-      {/* income vs expense bar chart */}
-      {barData.length > 0 && (
-        <div>
-          <h3>Income vs Expenses</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={barData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="month" />
-              <YAxis />
-              <Tooltip
-                formatter={(val) => formatMoney(
-                  currency === 'KHR' ? val : Math.round(val * 100),
-                  currency
-                )}
-              />
-              <Legend />
-              <Bar dataKey="Income" fill="#2ecc71" />
-              <Bar dataKey="Expense" fill="#e74c3c" />
-            </BarChart>
-          </ResponsiveContainer>
+          {barData.length > 0 && (
+            <Card>
+              <h2 className="text-lg font-semibold text-surface-900 dark:text-surface-50 mb-4">Income vs Expenses</h2>
+              <ResponsiveContainer width="100%" height={280}>
+                <BarChart data={barData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--color-surface-700)" />
+                  <XAxis dataKey="month" tick={{ fill: 'var(--color-surface-400)', fontSize: 12 }} />
+                  <YAxis tick={{ fill: 'var(--color-surface-400)', fontSize: 12 }} />
+                  <Tooltip
+                    formatter={(val) => formatMoney(currency === 'KHR' ? val : Math.round(val * 100), currency)}
+                    contentStyle={{ backgroundColor: 'var(--color-surface-800)', border: 'none', borderRadius: '8px', color: '#fff' }}
+                  />
+                  <Legend />
+                  <Bar dataKey="Income" fill="#22c55e" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="Expense" fill="#ef4444" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </Card>
+          )}
         </div>
       )}
     </div>

@@ -1,20 +1,25 @@
-// Will define navigation routes for the five planned pages and a fallback.
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import Navbar from '../components/layout/Navbar';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import DashboardPage from '../pages/DashboardPage';
 import TransactionsPage from '../pages/TransactionsPage';
 import BudgetsPage from '../pages/BudgetsPage';
-import DashboardPage from '../pages/DashboardPage';
+import GoalsPage from '../pages/GoalsPage';
+import SettingsPage from '../pages/SettingsPage';
+import NotFoundPage from '../pages/NotFoundPage';
+import { useFinance } from '../context/FinanceContext';
 
 export default function AppRoutes() {
+  const { settings } = useFinance();
+  const currency = settings.currency;
+
   return (
-    <BrowserRouter>
-      <Navbar />
-      <Routes>
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/transactions" element={<TransactionsPage />} />
-        <Route path="/budgets" element={<BudgetsPage />} />
-      </Routes>
-    </BrowserRouter>
+    <Routes>
+      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      <Route path="/dashboard" element={<DashboardPage currency={currency} />} />
+      <Route path="/transactions" element={<TransactionsPage currency={currency} />} />
+      <Route path="/budgets" element={<BudgetsPage currency={currency} />} />
+      <Route path="/goals" element={<GoalsPage />} />
+      <Route path="/settings" element={<SettingsPage />} />
+      <Route path="*" element={<NotFoundPage />} />
+    </Routes>
   );
 }

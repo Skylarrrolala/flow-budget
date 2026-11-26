@@ -14,6 +14,10 @@ describe('parseToMinor', () => {
     expect(parseToMinor('25000', 'KHR')).toBe(25000);
   });
 
+  it('rejects fractional KHR instead of rounding contributions', () => {
+    expect(parseToMinor('1.5', 'KHR')).toBeNaN();
+  });
+
   it('returns NaN for empty input', () => {
     expect(parseToMinor('', 'USD')).toBeNaN();
   });
