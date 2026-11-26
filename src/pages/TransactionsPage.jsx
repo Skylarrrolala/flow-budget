@@ -20,6 +20,9 @@ export default function TransactionsPage({ currency = 'USD' }) {
     type: 'all',
     category: 'all',
     sortBy: 'date-desc',
+    month: '',
+    from: '',
+    to: '',
   });
 
   useEffect(() => {
@@ -59,6 +62,10 @@ export default function TransactionsPage({ currency = 'USD' }) {
   let filtered = transactions;
   if (filters.type !== 'all') filtered = filtered.filter((t) => t.type === filters.type);
   if (filters.category !== 'all') filtered = filtered.filter((t) => t.category === filters.category);
+  if (filters.month) filtered = filtered.filter((t) => t.date.startsWith(filters.month));
+  const validRange = filters.from && filters.to ? filters.from <= filters.to : true;
+  if (validRange && filters.from) filtered = filtered.filter((t) => t.date >= filters.from);
+  if (validRange && filters.to) filtered = filtered.filter((t) => t.date <= filters.to);
 
   const sorted = [...filtered].sort((a, b) => {
     switch (filters.sortBy) {
@@ -91,9 +98,14 @@ export default function TransactionsPage({ currency = 'USD' }) {
         </Card>
       )}
 
-      <Card className="mb-4">
-        <TransactionFilters filters={filters} onChange={setFilters} />
-      </Card>
+        <Card className="mb-4">
+          <TransactionFilters filters={filters} onChange={setFilters} />
+          {(filters.type !== 'all' || filters.category !== 'all' || filters.month || filters.from || filters.to) && (
+            <p className="text-xs text-surface-500 dark:text-surface-400 mt-3">
+            Showing {sorted.length} of {transactions.length} transactions
+            </p>
+        )}
+        </Card>
 
       {sorted.length === 0 ? (
         <EmptyState
