@@ -4,22 +4,25 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer,
 } from 'recharts';
 import { formatMoney } from '../lib/money';
+import { currentMonthString } from '../lib/dates';
 import Card from '../components/ui/Card';
 import EmptyState from '../components/ui/EmptyState';
 import PageHeader from '../components/ui/PageHeader';
 import StatCard from '../components/ui/StatCard';
 
 const COLORS = [
-  '#c1d9cb', '#e7b45d', '#ef8878', '#9ca7ad',
+  '#c2d6c5', '#e3b567', '#ee8b7b', '#9ca7ad',
   '#91b5a2', '#b69bce', '#78aeb0', '#d2a17b',
   '#d38fa3',
 ];
 
 export default function DashboardPage({ currency = 'USD' }) {
   const { transactions } = useFinance();
+  const month = currentMonthString();
+  const monthTransactions = transactions.filter((t) => t.date.slice(0, 7) === month);
 
-  const expenses = transactions.filter((t) => t.type === 'expense');
-  const incomes = transactions.filter((t) => t.type === 'income');
+  const expenses = monthTransactions.filter((t) => t.type === 'expense');
+  const incomes = monthTransactions.filter((t) => t.type === 'income');
   const totalExpense = expenses.reduce((sum, t) => sum + t.amountMinor, 0);
   const totalIncome = incomes.reduce((sum, t) => sum + t.amountMinor, 0);
   const net = totalIncome - totalExpense;
@@ -62,19 +65,19 @@ export default function DashboardPage({ currency = 'USD' }) {
         <StatCard
           label="Income"
           value={formatMoney(totalIncome, currency)}
-          detail="Across all recorded transactions"
+          detail="This month"
           tone="positive"
         />
         <StatCard
           label="Expenses"
           value={formatMoney(totalExpense, currency)}
-          detail="Across all recorded transactions"
+          detail="This month"
           tone="negative"
         />
         <StatCard
           label="Net balance"
           value={`${net >= 0 ? '+' : '-'}${formatMoney(Math.abs(net), currency)}`}
-          detail="Income minus expenses"
+          detail="This month's income minus expenses"
           tone={net >= 0 ? 'positive' : 'negative'}
         />
       </div>
@@ -87,7 +90,7 @@ export default function DashboardPage({ currency = 'USD' }) {
         />
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {pieData.length > 0 && (
+          {pieData.length > 0 ? (
             <Card>
               <h2 className="text-base font-semibold text-surface-900 dark:text-surface-50 mb-4">Expense breakdown</h2>
               <ResponsiveContainer width="100%" height={280}>
@@ -112,6 +115,13 @@ export default function DashboardPage({ currency = 'USD' }) {
                   <Legend />
                 </PieChart>
               </ResponsiveContainer>
+            </Card>
+          ) : (
+            <Card>
+              <h2 className="text-base font-semibold text-surface-900 dark:text-surface-50 mb-2">Expense breakdown</h2>
+              <p className="text-sm text-surface-500 dark:text-surface-400">
+                No expenses this month yet.
+              </p>
             </Card>
           )}
 
