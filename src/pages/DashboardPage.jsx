@@ -6,11 +6,13 @@ import {
 import { formatMoney } from '../lib/money';
 import Card from '../components/ui/Card';
 import EmptyState from '../components/ui/EmptyState';
+import PageHeader from '../components/ui/PageHeader';
+import StatCard from '../components/ui/StatCard';
 
 const COLORS = [
-  '#3b82f6', '#ef4444', '#22c55e', '#f59e0b',
-  '#8b5cf6', '#06b6d4', '#f97316', '#64748b',
-  '#ec4899',
+  '#c1d9cb', '#e7b45d', '#ef8878', '#9ca7ad',
+  '#91b5a2', '#b69bce', '#78aeb0', '#d2a17b',
+  '#d38fa3',
 ];
 
 export default function DashboardPage({ currency = 'USD' }) {
@@ -51,28 +53,35 @@ export default function DashboardPage({ currency = 'USD' }) {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-surface-900 dark:text-surface-50 mb-6">Dashboard</h1>
+      <PageHeader
+        title="Overview"
+        description="A clear picture of where your money is going."
+      />
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        <Card>
-          <p className="text-xs font-medium text-surface-500 dark:text-surface-400 uppercase tracking-wide mb-1">Income</p>
-          <p className="text-xl font-bold text-success-600 dark:text-success-500">{formatMoney(totalIncome, currency)}</p>
-        </Card>
-        <Card>
-          <p className="text-xs font-medium text-surface-500 dark:text-surface-400 uppercase tracking-wide mb-1">Expenses</p>
-          <p className="text-xl font-bold text-danger-500">{formatMoney(totalExpense, currency)}</p>
-        </Card>
-        <Card>
-          <p className="text-xs font-medium text-surface-500 dark:text-surface-400 uppercase tracking-wide mb-1">Net Balance</p>
-          <p className={`text-xl font-bold ${net >= 0 ? 'text-success-600 dark:text-success-500' : 'text-danger-500'}`}>
-            {net >= 0 ? '+' : '-'}{formatMoney(Math.abs(net), currency)}
-          </p>
-        </Card>
+        <StatCard
+          label="Income"
+          value={formatMoney(totalIncome, currency)}
+          detail="Across all recorded transactions"
+          tone="positive"
+        />
+        <StatCard
+          label="Expenses"
+          value={formatMoney(totalExpense, currency)}
+          detail="Across all recorded transactions"
+          tone="negative"
+        />
+        <StatCard
+          label="Net balance"
+          value={`${net >= 0 ? '+' : '-'}${formatMoney(Math.abs(net), currency)}`}
+          detail="Income minus expenses"
+          tone={net >= 0 ? 'positive' : 'negative'}
+        />
       </div>
 
       {transactions.length === 0 ? (
         <EmptyState
-          icon="📊"
+          icon="dashboard"
           title="No transactions yet"
           description="Add some transactions to see your financial overview."
         />
@@ -80,7 +89,7 @@ export default function DashboardPage({ currency = 'USD' }) {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {pieData.length > 0 && (
             <Card>
-              <h2 className="text-lg font-semibold text-surface-900 dark:text-surface-50 mb-4">Expense Breakdown</h2>
+              <h2 className="text-base font-semibold text-surface-900 dark:text-surface-50 mb-4">Expense breakdown</h2>
               <ResponsiveContainer width="100%" height={280}>
                 <PieChart>
                   <Pie
@@ -89,7 +98,7 @@ export default function DashboardPage({ currency = 'USD' }) {
                     nameKey="name"
                     cx="50%"
                     cy="50%"
-                    outerRadius={90}
+                    outerRadius={88}
                     label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                   >
                     {pieData.map((_, i) => (
@@ -108,7 +117,7 @@ export default function DashboardPage({ currency = 'USD' }) {
 
           {barData.length > 0 && (
             <Card>
-              <h2 className="text-lg font-semibold text-surface-900 dark:text-surface-50 mb-4">Income vs Expenses</h2>
+              <h2 className="text-base font-semibold text-surface-900 dark:text-surface-50 mb-4">Income vs expenses</h2>
               <ResponsiveContainer width="100%" height={280}>
                 <BarChart data={barData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--color-surface-700)" />
@@ -119,8 +128,8 @@ export default function DashboardPage({ currency = 'USD' }) {
                     contentStyle={{ backgroundColor: 'var(--color-surface-800)', border: 'none', borderRadius: '8px', color: '#fff' }}
                   />
                   <Legend />
-                  <Bar dataKey="Income" fill="#22c55e" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="Expense" fill="#ef4444" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="Income" fill="#a7d2b7" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="Expense" fill="#ef8878" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </Card>

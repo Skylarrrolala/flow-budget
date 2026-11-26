@@ -10,12 +10,12 @@ export default function Toast({ message, type = 'success', onDismiss }) {
     <div
       role="status"
       aria-live="polite"
-      className={`fixed bottom-20 lg:bottom-6 left-1/2 -translate-x-1/2 z-50 ${bg} text-white px-5 py-3 rounded-lg shadow-lg flex items-center gap-3 text-sm font-medium animate-[slideUp_0.3s_ease-out]`}
+      className={`fixed bottom-20 left-1/2 z-50 flex -translate-x-1/2 items-center gap-3 rounded-lg px-5 py-3 text-sm font-medium text-surface-950 shadow-lg animate-[slideUp_0.3s_ease-out] lg:bottom-6 ${bg}`}
     >
       {message}
       <button
         onClick={onDismiss}
-        className="ml-2 opacity-70 hover:opacity-100 text-white text-lg leading-none"
+        className="ml-2 min-h-6 min-w-6 text-lg leading-none opacity-70 hover:opacity-100"
         aria-label="Dismiss notification"
       >
         &times;

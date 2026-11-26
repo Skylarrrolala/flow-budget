@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import Button from './Button';
 
 export default function ConfirmDialog({ open, title, message, confirmLabel = 'Confirm', cancelLabel = 'Cancel', variant = 'danger', onConfirm, onCancel, children }) {
   const cancelRef = useRef(null);
@@ -14,11 +15,6 @@ export default function ConfirmDialog({ open, title, message, confirmLabel = 'Co
   }, [open, onCancel]);
 
   if (!open) return null;
-
-  const confirmClass =
-    variant === 'danger'
-      ? 'bg-danger-500 hover:bg-danger-600 text-white'
-      : 'bg-primary-500 hover:bg-primary-600 text-white';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" onClick={onCancel}>
@@ -39,19 +35,22 @@ export default function ConfirmDialog({ open, title, message, confirmLabel = 'Co
           </p>
           {children}
           <div className="flex gap-3 mt-6">
-            <button
+            <Button
+              variant="secondary"
+              size="md"
               ref={cancelRef}
               onClick={onCancel}
-              className="flex-1 px-4 py-2.5 rounded-lg border border-surface-300 dark:border-surface-600 text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 text-sm font-medium transition-colors"
+              className="flex-1"
             >
               {cancelLabel}
-            </button>
-            <button
+            </Button>
+            <Button
+              variant={variant === 'danger' ? 'danger' : 'primary'}
               onClick={onConfirm}
-              className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${confirmClass}`}
+              className="flex-1"
             >
               {confirmLabel}
-            </button>
+            </Button>
           </div>
         </div>
       </div>
