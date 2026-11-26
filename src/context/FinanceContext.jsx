@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import useLocalStorage from '../hooks/useLocalStorage';
-import { exportAllData, clearAllData } from '../lib/storage';
+import { KEYS, exportAllData, clearAllData } from '../lib/storage';
 
 const FinanceContext = createContext();
 
@@ -41,9 +41,13 @@ export function FinanceProvider({ children }) {
   }, [settings.theme, setSettings, showToast]);
 
   const setCurrency = useCallback((currency) => {
+    if (currency === settings.currency) return;
+    localStorage.removeItem(KEYS.transactions);
+    localStorage.removeItem(KEYS.budgets);
+    setGoals([]);
     setSettings((prev) => ({ ...prev, currency }));
     showToast(`Currency changed to ${currency}`);
-  }, [setSettings, showToast]);
+  }, [settings.currency, setGoals, setSettings, showToast]);
 
   const addGoal = useCallback((goal) => {
     const newGoal = {

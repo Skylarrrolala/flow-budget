@@ -6,6 +6,7 @@ import { FinanceProvider } from '../context/FinanceContext';
 import TransactionForm from '../components/forms/TransactionForm';
 import BudgetForm from '../components/forms/BudgetForm';
 import GoalsPage from './GoalsPage';
+import SettingsPage from './SettingsPage';
 import TransactionsPage from './TransactionsPage';
 import BudgetsPage from './BudgetsPage';
 
@@ -52,6 +53,63 @@ async function enterAmount(value) {
     input.dispatchEvent(new Event('input', { bubbles: true }));
   });
 }
+
+describe('currency changes (WBS 1.3.6.2)', () => {
+  it.each(Object.keys(records))('requires confirmation when only %s exist, and cancel preserves them', async (kind) => {
+    localStorage.setItem(`flowbudget_${kind}`, JSON.stringify(records[kind]));
+    await render(<SettingsPage />);
+    await click(/KHR$/);
+
+    const dialog = container.querySelector('[role="alertdialog"]');
+    expect(dialog).not.toBeNull();
+    expect(JSON.parse(localStorage.getItem('flowbudget_settings')).currency).toBe('USD');
+    await click(/^Cancel$/, dialog);
+    expect(container.querySelector('[role="alertdialog"]')).toBeNull();
+    expect(JSON.parse(localStorage.getItem(`flowbudget_${kind}`))).toEqual(records[kind]);
+    expect(JSON.parse(localStorage.getItem('flowbudget_settings')).currency).toBe('USD');
+  });
+
+  it.each([['USD', 'KHR'], ['KHR', 'USD']])('confirmed %s to %s switching clears records, keeps theme/other data, and survives remount', async (from, to) => {
+    for (const [kind, values] of Object.entries(records)) {
+      localStorage.setItem(`flowbudget_${kind}`, JSON.stringify(values));
+    }
+    localStorage.setItem('flowbudget_settings', JSON.stringify({ theme: 'light', currency: from }));
+    localStorage.setItem('another-app', 'keep me');
+    await render(<><SettingsPage /><GoalsPage /></>);
+    await click(new RegExp(`${to}$`));
+    const dialog = container.querySelector('[role="alertdialog"]');
+    expect(dialog.textContent.toLowerCase()).toContain('goals');
+    await click(/Switch Currency$/i, dialog);
+
+    for (const kind of Object.keys(records)) {
+      expect(JSON.parse(localStorage.getItem(`flowbudget_${kind}`)) || []).toEqual([]);
+    }
+    expect(JSON.parse(localStorage.getItem('flowbudget_settings'))).toEqual({ theme: 'light', currency: to });
+    expect(localStorage.getItem('another-app')).toBe('keep me');
+    expect(container.textContent).toContain('No savings goals yet');
+
+    await act(() => root.unmount());
+    root = createRoot(container);
+    await render(<><SettingsPage /><GoalsPage /></>);
+    expect(container.textContent).toContain(`All amounts shown in ${to === 'KHR' ? 'Khmer Riel' : 'US Dollars'}`);
+    expect(container.textContent).toContain('No savings goals yet');
+  });
+
+  it('switches an empty app without prompting', async () => {
+    await render(<SettingsPage />);
+    await click(/KHR$/);
+    expect(container.querySelector('[role="alertdialog"]')).toBeNull();
+    expect(JSON.parse(localStorage.getItem('flowbudget_settings')).currency).toBe('KHR');
+  });
+
+  it('clicking the current currency preserves records without prompting', async () => {
+    localStorage.setItem('flowbudget_goals', JSON.stringify(records.goals));
+    await render(<SettingsPage />);
+    await click(/USD$/);
+    expect(container.querySelector('[role="alertdialog"]')).toBeNull();
+    expect(JSON.parse(localStorage.getItem('flowbudget_goals'))).toEqual(records.goals);
+  });
+});
 
 describe('amount inputs', () => {
   it('rejects fractional KHR contributions and persists a whole-riel contribution', async () => {

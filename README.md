@@ -63,6 +63,8 @@ npm test
 npm run build
 ```
 
+Tests include money/date utilities, KHR amount validation, edit switching, and currency-reset confirmation and persistence. Changing currency with existing transactions, budgets, or goals requires confirmation and resets all financial records, including contributions. Export data first to keep a copy. The theme and unrelated browser data are preserved (WBS 1.3.6.2).
+
 ## Folder Organization
 
 | Path | Responsibility |

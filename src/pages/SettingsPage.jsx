@@ -2,10 +2,11 @@ import { useState } from 'react';
 import { useFinance } from '../context/FinanceContext';
 import Card from '../components/ui/Card';
 import ConfirmDialog from '../components/ui/ConfirmDialog';
+import { KEYS, loadFromStorage } from '../lib/storage';
 
 export default function SettingsPage() {
   const {
-    settings, toggleTheme, setCurrency, handleExport, factoryReset,
+    settings, goals, toggleTheme, setCurrency, handleExport, factoryReset,
   } = useFinance();
 
   const [showCurrencyConfirm, setShowCurrencyConfirm] = useState(false);
@@ -15,9 +16,9 @@ export default function SettingsPage() {
   function handleCurrencyChange(newCurrency) {
     if (newCurrency === settings.currency) return;
 
-    const txns = JSON.parse(localStorage.getItem('flowbudget_transactions') || '[]');
-    const budgets = JSON.parse(localStorage.getItem('flowbudget_budgets') || '[]');
-    const hasRecords = txns.length > 0 || budgets.length > 0;
+    const txns = loadFromStorage(KEYS.transactions) || [];
+    const budgets = loadFromStorage(KEYS.budgets) || [];
+    const hasRecords = txns.length > 0 || budgets.length > 0 || goals.length > 0;
 
     if (hasRecords) {
       setPendingCurrency(newCurrency);
@@ -28,8 +29,6 @@ export default function SettingsPage() {
   }
 
   function confirmCurrencyChange() {
-    localStorage.removeItem('flowbudget_transactions');
-    localStorage.removeItem('flowbudget_budgets');
     setCurrency(pendingCurrency);
     setShowCurrencyConfirm(false);
     setPendingCurrency(null);
@@ -139,8 +138,8 @@ export default function SettingsPage() {
       <ConfirmDialog
         open={showCurrencyConfirm}
         title="Change Currency"
-        message={`Switching to ${pendingCurrency} will delete all existing transactions and budgets because amounts cannot be converted between currencies. Goals will be kept.`}
-        confirmLabel="Switch Currency"
+        message={`Switching to ${pendingCurrency} requires resetting all transactions, budgets, goals, and contributions. Amounts cannot be converted between currencies. Export your data first if you want to keep a copy.`}
+        confirmLabel="Reset & Switch Currency"
         onConfirm={confirmCurrencyChange}
         onCancel={() => setShowCurrencyConfirm(false)}
       >
