@@ -1,10 +1,12 @@
 // @vitest-environment jsdom
 import { act } from 'react';
 import { createRoot } from 'react-dom/client';
+import { MemoryRouter } from 'react-router-dom';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { FinanceProvider } from '../context/FinanceContext';
 import { DEMO_TRANSACTIONS } from '../data/demoData';
 import { currentMonthString } from '../lib/dates';
+import DashboardPage from './DashboardPage';
 import TransactionForm from '../components/forms/TransactionForm';
 import BudgetForm from '../components/forms/BudgetForm';
 import GoalsPage from './GoalsPage';
@@ -195,6 +197,43 @@ describe('demo data', () => {
         const shiftedDate = Date.parse(`${transaction.date}T00:00:00Z`);
         expect(shiftedDate - shiftedNewest).toBe(originalDate - originalNewest);
       });
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});
+
+describe('dashboard recent transactions', () => {
+  it('shows the five newest transactions across months without reordering context data', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 11, 1, 12));
+    const transactions = [
+      { id: 'nov-29-first', type: 'expense', amountMinor: 125, category: 'Food', description: 'Nov 29 first', date: '2026-11-29' },
+      { id: 'nov-30-first', type: 'expense', amountMinor: 100, category: 'Transport', description: 'Nov 30 first', date: '2026-11-30' },
+      { id: 'nov-30-second', type: 'income', amountMinor: 500, category: 'Salary', description: 'Nov 30 second', date: '2026-11-30' },
+      { id: 'nov-29-second', type: 'expense', amountMinor: 225, category: 'Food', description: 'Nov 29 second', date: '2026-11-29' },
+      { id: 'nov-28', type: 'expense', amountMinor: 250, category: 'Transport', description: 'Nov 28', date: '2026-11-28' },
+      { id: 'nov-27', type: 'expense', amountMinor: 300, category: 'Food', description: 'Nov 27', date: '2026-11-27' },
+    ];
+    localStorage.setItem('flowbudget_transactions', JSON.stringify(transactions));
+    try {
+      await render(<MemoryRouter><DashboardPage /></MemoryRouter>);
+
+      const recentHeading = [...container.querySelectorAll('h2')]
+        .find((heading) => heading.textContent === 'Recent transactions');
+      const recentCard = recentHeading.parentElement.parentElement;
+      const rows = [...recentCard.lastElementChild.children];
+      expect(rows).toHaveLength(5);
+      expect(rows.map((row) => row.textContent)).toEqual([
+        'Transport— Nov 30 firstNov 30, 2026-$1.00',
+        'Salary— Nov 30 secondNov 30, 2026+$5.00',
+        'Food— Nov 29 firstNov 29, 2026-$1.25',
+        'Food— Nov 29 secondNov 29, 2026-$2.25',
+        'Transport— Nov 28Nov 28, 2026-$2.50',
+      ]);
+      expect(recentCard.querySelector('a').getAttribute('href')).toBe('/transactions');
+      expect(readSaved().transactions.map((transaction) => transaction.id))
+        .toEqual(transactions.map((transaction) => transaction.id));
     } finally {
       vi.useRealTimers();
     }

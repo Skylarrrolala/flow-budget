@@ -3,8 +3,9 @@ import {
   PieChart, Pie, Tooltip, Legend, Cell,
   BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer,
 } from 'recharts';
+import { Link } from 'react-router-dom';
 import { formatMoney } from '../lib/money';
-import { currentMonthString } from '../lib/dates';
+import { currentMonthString, formatDate } from '../lib/dates';
 import Card from '../components/ui/Card';
 import EmptyState from '../components/ui/EmptyState';
 import PageHeader from '../components/ui/PageHeader';
@@ -18,6 +19,9 @@ const COLORS = [
 
 export default function DashboardPage({ currency = 'USD' }) {
   const { transactions } = useFinance();
+  const recentTransactions = [...transactions]
+    .sort((a, b) => b.date.localeCompare(a.date))
+    .slice(0, 5);
   const month = currentMonthString();
   const monthTransactions = transactions.filter((t) => t.date.slice(0, 7) === month);
 
@@ -89,61 +93,98 @@ export default function DashboardPage({ currency = 'USD' }) {
           description="Add some transactions to see your financial overview."
         />
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {pieData.length > 0 ? (
-            <Card>
-              <h2 className="text-base font-semibold text-surface-900 dark:text-surface-50 mb-4">Expense breakdown</h2>
-              <ResponsiveContainer width="100%" height={280}>
-                <PieChart>
-                  <Pie
-                    data={pieData}
-                    dataKey="value"
-                    nameKey="name"
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={88}
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                  >
-                    {pieData.map((_, i) => (
-                      <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    formatter={(val) => formatMoney(currency === 'KHR' ? val : Math.round(val * 100), currency)}
-                    contentStyle={{ backgroundColor: 'var(--color-surface-800)', border: 'none', borderRadius: '8px', color: '#fff' }}
-                  />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            </Card>
-          ) : (
-            <Card>
-              <h2 className="text-base font-semibold text-surface-900 dark:text-surface-50 mb-2">Expense breakdown</h2>
-              <p className="text-sm text-surface-500 dark:text-surface-400">
-                No expenses this month yet.
-              </p>
-            </Card>
-          )}
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {pieData.length > 0 ? (
+              <Card>
+                <h2 className="text-base font-semibold text-surface-900 dark:text-surface-50 mb-4">Expense breakdown</h2>
+                <ResponsiveContainer width="100%" height={280}>
+                  <PieChart>
+                    <Pie
+                      data={pieData}
+                      dataKey="value"
+                      nameKey="name"
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={88}
+                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    >
+                      {pieData.map((_, i) => (
+                        <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      formatter={(val) => formatMoney(currency === 'KHR' ? val : Math.round(val * 100), currency)}
+                      contentStyle={{ backgroundColor: 'var(--color-surface-800)', border: 'none', borderRadius: '8px', color: '#fff' }}
+                    />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </Card>
+            ) : (
+              <Card>
+                <h2 className="text-base font-semibold text-surface-900 dark:text-surface-50 mb-2">Expense breakdown</h2>
+                <p className="text-sm text-surface-500 dark:text-surface-400">
+                  No expenses this month yet.
+                </p>
+              </Card>
+            )}
 
-          {barData.length > 0 && (
-            <Card>
-              <h2 className="text-base font-semibold text-surface-900 dark:text-surface-50 mb-4">Income vs expenses</h2>
-              <ResponsiveContainer width="100%" height={280}>
-                <BarChart data={barData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--color-surface-700)" />
-                  <XAxis dataKey="month" tick={{ fill: 'var(--color-surface-400)', fontSize: 12 }} />
-                  <YAxis tick={{ fill: 'var(--color-surface-400)', fontSize: 12 }} />
-                  <Tooltip
-                    formatter={(val) => formatMoney(currency === 'KHR' ? val : Math.round(val * 100), currency)}
-                    contentStyle={{ backgroundColor: 'var(--color-surface-800)', border: 'none', borderRadius: '8px', color: '#fff' }}
-                  />
-                  <Legend />
-                  <Bar dataKey="Income" fill="#a7d2b7" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="Expense" fill="#ef8878" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </Card>
-          )}
+            {barData.length > 0 && (
+              <Card>
+                <h2 className="text-base font-semibold text-surface-900 dark:text-surface-50 mb-4">Income vs expenses</h2>
+                <ResponsiveContainer width="100%" height={280}>
+                  <BarChart data={barData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--color-surface-700)" />
+                    <XAxis dataKey="month" tick={{ fill: 'var(--color-surface-400)', fontSize: 12 }} />
+                    <YAxis tick={{ fill: 'var(--color-surface-400)', fontSize: 12 }} />
+                    <Tooltip
+                      formatter={(val) => formatMoney(currency === 'KHR' ? val : Math.round(val * 100), currency)}
+                      contentStyle={{ backgroundColor: 'var(--color-surface-800)', border: 'none', borderRadius: '8px', color: '#fff' }}
+                    />
+                    <Legend />
+                    <Bar dataKey="Income" fill="#a7d2b7" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="Expense" fill="#ef8878" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </Card>
+            )}
+          </div>
+
+          <Card>
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-base font-semibold text-surface-900 dark:text-surface-50">Recent transactions</h2>
+              <Link
+                to="/transactions"
+                className="text-sm font-medium text-primary-600 hover:underline dark:text-primary-400"
+              >
+                View all
+              </Link>
+            </div>
+            <div className="space-y-2">
+              {recentTransactions.map((txn) => (
+                <div
+                  key={txn.id}
+                  className="flex items-center justify-between border-t border-surface-200 pt-3 first:border-t-0 first:pt-0 dark:border-surface-700"
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-surface-900 dark:text-surface-50">{txn.category}</span>
+                      {txn.description && (
+                        <span className="truncate text-sm text-surface-500 dark:text-surface-400">— {txn.description}</span>
+                      )}
+                    </div>
+                    <span className="text-xs text-surface-400 dark:text-surface-500">{formatDate(txn.date)}</span>
+                  </div>
+                  <span className={`ml-4 text-sm font-semibold ${
+                    txn.type === 'expense' ? 'text-danger-500' : 'text-success-600 dark:text-success-500'
+                  }`}>
+                    {txn.type === 'expense' ? '-' : '+'}{formatMoney(txn.amountMinor, currency)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </Card>
         </div>
       )}
     </div>
