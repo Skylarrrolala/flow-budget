@@ -7,7 +7,7 @@ import { createDefaultSnapshot, exportAllData } from '../lib/storage';
 import BudgetsPage from '../pages/BudgetsPage';
 
 const transaction = { id: 'txn-1', type: 'expense', amountMinor: 500, category: 'Food', description: '', date: '2026-11-25' };
-const budget = { id: 'budget-1', month: '2026-11', limitMinor: 10000 };
+const budget = { id: 'budget-1', month: '2026-11', category: 'Food', limitMinor: 10000 };
 const goal = {
   id: 'goal-1', name: 'Emergency fund', targetAmountMinor: 10000, targetDate: null,
   contributions: [{ id: 'contribution-1', amountMinor: 2500, date: '2026-11-25' }],

@@ -18,7 +18,7 @@ const goal = {
 };
 const records = {
   transactions: [{ id: 'txn-1', type: 'expense', amountMinor: 500, category: 'Food', description: '', date: '2026-11-25' }],
-  budgets: [{ id: 'budget-1', month: '2026-11', limitMinor: 10000 }],
+  budgets: [{ id: 'budget-1', month: '2026-11', category: 'Food', limitMinor: 10000 }],
   goals: [goal],
 };
 let container;
@@ -161,7 +161,7 @@ describe('editing records', () => {
     const original = records[kind][0];
     const second = kind === 'transactions'
       ? { ...original, id: 'txn-2', amountMinor: 900 }
-      : { ...original, id: 'budget-2', month: '2026-10', limitMinor: 900 };
+      : { ...original, id: 'budget-2', category: 'Transport' , limitMinor: 900 };
     localStorage.setItem(`flowbudget_${kind}`, JSON.stringify([original, second]));
     await render(kind === 'transactions' ? <TransactionsPage /> : <BudgetsPage />);
 
