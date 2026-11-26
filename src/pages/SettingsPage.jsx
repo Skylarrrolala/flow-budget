@@ -2,11 +2,10 @@ import { useState } from 'react';
 import { useFinance } from '../context/FinanceContext';
 import Card from '../components/ui/Card';
 import ConfirmDialog from '../components/ui/ConfirmDialog';
-import { KEYS, loadFromStorage } from '../lib/storage';
 
 export default function SettingsPage() {
   const {
-    settings, goals, toggleTheme, setCurrency, handleExport, factoryReset,
+    settings, transactions, budgets, goals, toggleTheme, setCurrency, handleExport, factoryReset,
   } = useFinance();
 
   const [showCurrencyConfirm, setShowCurrencyConfirm] = useState(false);
@@ -16,9 +15,7 @@ export default function SettingsPage() {
   function handleCurrencyChange(newCurrency) {
     if (newCurrency === settings.currency) return;
 
-    const txns = loadFromStorage(KEYS.transactions) || [];
-    const budgets = loadFromStorage(KEYS.budgets) || [];
-    const hasRecords = txns.length > 0 || budgets.length > 0 || goals.length > 0;
+    const hasRecords = transactions.length > 0 || budgets.length > 0 || goals.length > 0;
 
     if (hasRecords) {
       setPendingCurrency(newCurrency);

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useFinance } from '../context/FinanceContext';
 import TransactionForm from '../components/forms/TransactionForm';
 import TransactionFilters from '../components/ui/TransactionFilters';
 import { formatMoney } from '../lib/money';
@@ -7,23 +8,8 @@ import Card from '../components/ui/Card';
 import ConfirmDialog from '../components/ui/ConfirmDialog';
 import EmptyState from '../components/ui/EmptyState';
 
-const STORAGE_KEY = 'flowbudget_transactions';
-
-function loadTransactions() {
-  try {
-    const data = localStorage.getItem(STORAGE_KEY);
-    return data ? JSON.parse(data) : [];
-  } catch {
-    return [];
-  }
-}
-
-function saveTransactions(transactions) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(transactions));
-}
-
 export default function TransactionsPage({ currency = 'USD' }) {
-  const [transactions, setTransactions] = useState(loadTransactions);
+  const { transactions, addTransaction, updateTransaction, deleteTransaction } = useFinance();
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -35,10 +21,6 @@ export default function TransactionsPage({ currency = 'USD' }) {
   });
 
   useEffect(() => {
-    saveTransactions(transactions);
-  }, [transactions]);
-
-  useEffect(() => {
     if (!toast) return;
     const timer = setTimeout(() => setToast(null), 2500);
     return () => clearTimeout(timer);
@@ -46,10 +28,10 @@ export default function TransactionsPage({ currency = 'USD' }) {
 
   function handleSave(txn) {
     if (editing) {
-      setTransactions((prev) => prev.map((t) => (t.id === txn.id ? txn : t)));
+      updateTransaction(txn.id, txn);
       setToast('Transaction updated!');
     } else {
-      setTransactions((prev) => [txn, ...prev]);
+      addTransaction(txn);
       setToast('Transaction added!');
     }
     setShowForm(false);
@@ -62,7 +44,7 @@ export default function TransactionsPage({ currency = 'USD' }) {
   }
 
   function confirmDelete() {
-    setTransactions((prev) => prev.filter((t) => t.id !== deleteTarget.id));
+    deleteTransaction(deleteTarget.id);
     setToast('Transaction deleted.');
     setDeleteTarget(null);
   }

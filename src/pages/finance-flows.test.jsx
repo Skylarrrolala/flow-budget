@@ -10,6 +10,8 @@ import SettingsPage from './SettingsPage';
 import TransactionsPage from './TransactionsPage';
 import BudgetsPage from './BudgetsPage';
 
+const readSaved = () => JSON.parse(localStorage.getItem('flowbudget:v1'));
+
 const goal = {
   id: 'goal-1', name: 'Emergency fund', targetAmountMinor: 10000, targetDate: null,
   contributions: [{ id: 'contribution-1', amountMinor: 2500, date: '2026-11-25' }],
@@ -62,11 +64,11 @@ describe('currency changes (WBS 1.3.6.2)', () => {
 
     const dialog = container.querySelector('[role="alertdialog"]');
     expect(dialog).not.toBeNull();
-    expect(JSON.parse(localStorage.getItem('flowbudget_settings')).currency).toBe('USD');
+    expect(readSaved().settings.currency).toBe('USD');
     await click(/^Cancel$/, dialog);
     expect(container.querySelector('[role="alertdialog"]')).toBeNull();
-    expect(JSON.parse(localStorage.getItem(`flowbudget_${kind}`))).toEqual(records[kind]);
-    expect(JSON.parse(localStorage.getItem('flowbudget_settings')).currency).toBe('USD');
+    expect(readSaved()[kind]).toEqual(records[kind]);
+    expect(readSaved().settings.currency).toBe('USD');
   });
 
   it.each([['USD', 'KHR'], ['KHR', 'USD']])('confirmed %s to %s switching clears records, keeps theme/other data, and survives remount', async (from, to) => {
@@ -82,9 +84,9 @@ describe('currency changes (WBS 1.3.6.2)', () => {
     await click(/Switch Currency$/i, dialog);
 
     for (const kind of Object.keys(records)) {
-      expect(JSON.parse(localStorage.getItem(`flowbudget_${kind}`)) || []).toEqual([]);
+      expect(readSaved()[kind] || []).toEqual([]);
     }
-    expect(JSON.parse(localStorage.getItem('flowbudget_settings'))).toEqual({ theme: 'light', currency: to });
+    expect(readSaved().settings).toEqual({ theme: 'light', currency: to });
     expect(localStorage.getItem('another-app')).toBe('keep me');
     expect(container.textContent).toContain('No savings goals yet');
 
@@ -99,7 +101,7 @@ describe('currency changes (WBS 1.3.6.2)', () => {
     await render(<SettingsPage />);
     await click(/KHR$/);
     expect(container.querySelector('[role="alertdialog"]')).toBeNull();
-    expect(JSON.parse(localStorage.getItem('flowbudget_settings')).currency).toBe('KHR');
+    expect(readSaved().settings.currency).toBe('KHR');
   });
 
   it('clicking the current currency preserves records without prompting', async () => {
@@ -107,7 +109,7 @@ describe('currency changes (WBS 1.3.6.2)', () => {
     await render(<SettingsPage />);
     await click(/USD$/);
     expect(container.querySelector('[role="alertdialog"]')).toBeNull();
-    expect(JSON.parse(localStorage.getItem('flowbudget_goals'))).toEqual(records.goals);
+    expect(readSaved().goals).toEqual(records.goals);
   });
 });
 
@@ -119,12 +121,12 @@ describe('amount inputs', () => {
     await enterAmount('1.5');
     await click(/^\+ Add$/);
     expect(container.textContent).toContain('Enter a positive amount in whole riel.');
-    expect(JSON.parse(localStorage.getItem('flowbudget_goals'))[0].contributions).toEqual(goal.contributions);
+    expect(readSaved().goals[0].contributions).toEqual(goal.contributions);
 
     await enterAmount('25000');
     await click(/^\+ Add$/);
-    expect(JSON.parse(localStorage.getItem('flowbudget_goals'))[0].contributions[0].amountMinor).toBe(25000);
-    expect(JSON.parse(localStorage.getItem('flowbudget_goals'))[0].contributions).toHaveLength(2);
+    expect(readSaved().goals[0].contributions[0].amountMinor).toBe(25000);
+    expect(readSaved().goals[0].contributions).toHaveLength(2);
   });
 
   it.each(['transaction', 'budget', 'goal', 'contribution'])('accepts whole KHR and rejects fractional/zero amounts in the %s input', async (kind) => {
@@ -171,7 +173,7 @@ describe('editing records', () => {
     await enterAmount('12.50');
     await act(() => container.querySelector('form').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })));
 
-    const saved = JSON.parse(localStorage.getItem(`flowbudget_${kind}`));
+    const saved = readSaved()[kind];
     expect(saved[0]).toEqual(original);
     expect(saved[1][kind === 'transactions' ? 'amountMinor' : 'limitMinor']).toBe(1250);
     expect(saved).toHaveLength(2);

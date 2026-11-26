@@ -1,15 +1,13 @@
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import useLocalStorage from '../hooks/useLocalStorage';
-import { KEYS, exportAllData, clearAllData } from '../lib/storage';
+import { createDefaultSnapshot, loadSnapshot, saveSnapshot, exportAllData, clearAllData } from '../lib/storage';
+import { todayString } from '../lib/dates';
 
 const FinanceContext = createContext();
 
-const DEFAULT_SETTINGS = { theme: 'dark', currency: 'USD' };
-
 export function FinanceProvider({ children }) {
-  const [settings, setSettings] = useLocalStorage('flowbudget_settings', DEFAULT_SETTINGS);
-  const [goals, setGoals] = useLocalStorage('flowbudget_goals', []);
   const [toast, setToast] = useState(null);
+  const [snapshot, setSnapshot] = useState(loadSnapshot);
+  const { settings, goals } = snapshot;
 
   useEffect(() => {
     const root = document.documentElement;
@@ -32,22 +30,78 @@ export function FinanceProvider({ children }) {
 
   const dismissToast = useCallback(() => setToast(null), []);
 
+  useEffect(() => {
+    if (!saveSnapshot(snapshot)) {
+      // Report the result of browser storage I/O; it cannot be derived during render.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      showToast('Changes could not be saved. Export your data before closing this page.', 'error');
+    }
+  }, [snapshot, showToast]);
+
   const toggleTheme = useCallback(() => {
-    setSettings((prev) => ({
+    setSnapshot((prev) => ({
       ...prev,
-      theme: prev.theme === 'dark' ? 'light' : 'dark',
+      settings: {
+        ...prev.settings,
+        theme: prev.settings.theme === 'dark' ? 'light' : 'dark',
+      },
     }));
     showToast(settings.theme === 'dark' ? 'Switched to light theme' : 'Switched to dark theme');
-  }, [settings.theme, setSettings, showToast]);
+  }, [settings.theme, showToast]);
 
   const setCurrency = useCallback((currency) => {
     if (currency === settings.currency) return;
-    localStorage.removeItem(KEYS.transactions);
-    localStorage.removeItem(KEYS.budgets);
-    setGoals([]);
-    setSettings((prev) => ({ ...prev, currency }));
+    clearAllData();
+    setSnapshot((prev) => ({
+      ...prev,
+      transactions: [],
+      budgets: [],
+      goals: [],
+      settings: { ...prev.settings, currency },
+    }));
     showToast(`Currency changed to ${currency}`);
-  }, [settings.currency, setGoals, setSettings, showToast]);
+  }, [settings.currency, showToast]);
+
+  const addTransaction = useCallback((transaction) => {
+    const newTransaction = { ...transaction, id: transaction.id || crypto.randomUUID() };
+    setSnapshot((prev) => ({ ...prev, transactions: [newTransaction, ...prev.transactions] }));
+  }, []);
+
+  const updateTransaction = useCallback((id, updates) => {
+    setSnapshot((prev) => ({
+      ...prev,
+      transactions: prev.transactions.map((transaction) =>
+        transaction.id === id ? { ...transaction, ...updates, id } : transaction
+      ),
+    }));
+  }, []);
+
+  const deleteTransaction = useCallback((id) => {
+    setSnapshot((prev) => ({
+      ...prev,
+      transactions: prev.transactions.filter((transaction) => transaction.id !== id),
+    }));
+  }, []);
+
+  const addBudget = useCallback((budget) => {
+    const newBudget = { ...budget, id: budget.id || crypto.randomUUID() };
+    setSnapshot((prev) => ({
+      ...prev,
+      budgets: prev.budgets.some((item) => item.month === budget.month)
+        ? prev.budgets : [newBudget, ...prev.budgets],
+    }));
+  }, []);
+
+  const updateBudget = useCallback((id, updates) => {
+    setSnapshot((prev) => ({
+      ...prev,
+      budgets: prev.budgets.map((budget) => budget.id === id ? { ...budget, ...updates, id } : budget),
+    }));
+  }, []);
+
+  const deleteBudget = useCallback((id) => {
+    setSnapshot((prev) => ({ ...prev, budgets: prev.budgets.filter((budget) => budget.id !== id) }));
+  }, []);
 
   const addGoal = useCallback((goal) => {
     const newGoal = {
@@ -55,85 +109,85 @@ export function FinanceProvider({ children }) {
       id: crypto.randomUUID(),
       contributions: [],
     };
-    setGoals((prev) => [newGoal, ...prev]);
+    setSnapshot((prev) => ({
+      ...prev,
+      goals: [newGoal, ...prev.goals],
+    }));
     showToast('Goal created!');
-  }, [setGoals, showToast]);
+  }, [showToast]);
 
   const updateGoal = useCallback((id, updates) => {
-    setGoals((prev) => prev.map((g) => (g.id === id ? { ...g, ...updates } : g)));
+    setSnapshot((prev) => ({
+      ...prev,
+      goals: prev.goals.map((g) =>
+        g.id === id ? { ...g, ...updates, id, contributions: g.contributions } : g
+      ),
+    }));
     showToast('Goal updated!');
-  }, [setGoals, showToast]);
+  }, [showToast]);
 
   const deleteGoal = useCallback((id) => {
-    setGoals((prev) => prev.filter((g) => g.id !== id));
+    setSnapshot((prev) => ({ ...prev, goals: prev.goals.filter((g) => g.id !== id) }));
     showToast('Goal deleted.');
-  }, [setGoals, showToast]);
+  }, [showToast]);
 
   const addContribution = useCallback((goalId, amountMinor) => {
-    const contribution = {
-      id: crypto.randomUUID(),
-      amountMinor,
-      date: new Date().toISOString().slice(0, 10),
-    };
-    let reachedGoal = null;
-    setGoals((prev) =>
-      prev.map((g) => {
-        if (g.id !== goalId) return g;
-        const updated = { ...g, contributions: [contribution, ...g.contributions] };
-        const totalSaved = updated.contributions.reduce((s, c) => s + c.amountMinor, 0);
-        const wasBelowTarget = g.contributions.reduce((s, c) => s + c.amountMinor, 0) < g.targetAmountMinor;
-        if (wasBelowTarget && totalSaved >= g.targetAmountMinor) {
-          reachedGoal = g.name;
-        }
-        return updated;
-      })
-    );
-    if (reachedGoal) {
-      showToast(`You reached ${reachedGoal}!`);
-    } else {
-      showToast('Contribution added!');
-    }
-  }, [setGoals, showToast]);
+    const goal = goals.find((item) => item.id === goalId);
+    if (!goal) return;
+    const contribution = { id: crypto.randomUUID(), amountMinor, date: todayString() };
+    const saved = goal.contributions.reduce((sum, item) => sum + item.amountMinor, 0);
+    const reachedGoal = saved < goal.targetAmountMinor && saved + amountMinor >= goal.targetAmountMinor;
+    setSnapshot((prev) => ({
+      ...prev,
+      goals: prev.goals.map((item) => item.id === goalId
+        ? { ...item, contributions: [contribution, ...item.contributions] } : item),
+    }));
+    showToast(reachedGoal ? `You reached ${goal.name}!` : 'Contribution added!');
+  }, [goals, showToast]);
 
   const removeContribution = useCallback((goalId, contributionId) => {
-    setGoals((prev) =>
-      prev.map((g) => {
-        if (g.id !== goalId) return g;
-        return { ...g, contributions: g.contributions.filter((c) => c.id !== contributionId) };
-      })
-    );
+    setSnapshot((prev) => ({
+      ...prev,
+      goals: prev.goals.map((goal) => goal.id === goalId
+        ? { ...goal, contributions: goal.contributions.filter((item) => item.id !== contributionId) }
+        : goal),
+    }));
     showToast('Contribution removed.');
-  }, [setGoals, showToast]);
+  }, [showToast]);
 
   const handleExport = useCallback(() => {
-    const data = exportAllData();
+    const data = exportAllData(snapshot);
     const json = JSON.stringify(data, null, 2);
     const blob = new Blob([json], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
-    const date = new Date().toISOString().slice(0, 10);
+    const date = todayString();
     const a = document.createElement('a');
     a.href = url;
     a.download = `flowbudget-export-${date}.json`;
     a.click();
     URL.revokeObjectURL(url);
     showToast('Data exported!');
-  }, [showToast]);
+  }, [snapshot, showToast]);
 
   const factoryReset = useCallback(() => {
     clearAllData();
-    setGoals([]);
-    setSettings(DEFAULT_SETTINGS);
+    setSnapshot(createDefaultSnapshot());
     showToast('All data has been reset.');
-  }, [setGoals, setSettings, showToast]);
+  }, [showToast]);
 
   const value = {
-    settings,
-    goals,
+    ...snapshot,
     toast,
     showToast,
     dismissToast,
     toggleTheme,
     setCurrency,
+    addTransaction,
+    updateTransaction,
+    deleteTransaction,
+    addBudget,
+    updateBudget,
+    deleteBudget,
     addGoal,
     updateGoal,
     deleteGoal,
