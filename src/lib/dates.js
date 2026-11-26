@@ -8,6 +8,13 @@ export function todayString() {
     return `${year}-${month}-${day}`;
 }
 
+/** Shift a 'YYYY-MM-DD' date by whole days (UTC, so time zones can't move it) */
+export function shiftDate(dateStr, days) {
+    const date = new Date(`${dateStr}T00:00:00Z`);
+    date.setUTCDate(date.getUTCDate() + days);
+    return date.toISOString().slice(0, 10);
+}
+
 /** Get the current month as 'YYYY-MM' */
 export function currentMonthString() {
     const d = new Date();
