@@ -9,6 +9,8 @@ import ConfirmDialog from '../components/ui/ConfirmDialog';
 import ProgressBar from '../components/ui/ProgressBar';
 import EmptyState from '../components/ui/EmptyState';
 import Card from '../components/ui/Card';
+import PageHeader from '../components/ui/PageHeader';
+import Button from '../components/ui/Button';
 
 export default function GoalsPage() {
   const {
@@ -93,28 +95,21 @@ export default function GoalsPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-surface-900 dark:text-surface-50">Savings Goals</h1>
-        <button
-          onClick={openCreate}
-          className="px-4 py-2.5 bg-primary-500 hover:bg-primary-600 text-white rounded-lg text-sm font-medium transition-colors"
-        >
-          + Create Goal
-        </button>
-      </div>
+      <PageHeader
+        title="Savings goals"
+        description="Build toward the things that matter to you."
+        action={<Button onClick={openCreate}>+ Create Goal</Button>}
+      />
 
       {goals.length === 0 ? (
         <EmptyState
-          icon="🎯"
+          icon="goals"
           title="No savings goals yet"
           description="Start saving towards something meaningful."
           action={
-            <button
-              onClick={openCreate}
-              className="px-4 py-2.5 bg-primary-500 hover:bg-primary-600 text-white rounded-lg text-sm font-medium transition-colors"
-            >
+            <Button onClick={openCreate}>
               Create your first goal
-            </button>
+            </Button>
           }
         />
       ) : (
@@ -150,18 +145,20 @@ export default function GoalsPage() {
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <button
+                    <Button
+                      variant="secondary"
+                      size="sm"
                       onClick={() => openEdit(goal)}
-                      className="text-xs px-3 py-1.5 rounded-lg border border-surface-300 dark:border-surface-600 text-surface-600 dark:text-surface-400 hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors"
                     >
                       Edit
-                    </button>
-                    <button
+                    </Button>
+                    <Button
+                      variant="danger"
+                      size="sm"
                       onClick={() => setDeleteTarget(goal)}
-                      className="text-xs px-3 py-1.5 rounded-lg border border-danger-300 dark:border-danger-500/50 text-danger-500 hover:bg-danger-50 dark:hover:bg-danger-500/10 transition-colors"
                     >
                       Delete
-                    </button>
+                    </Button>
                   </div>
                 </div>
 
@@ -202,12 +199,12 @@ export default function GoalsPage() {
                     }
                     className="flex-1 px-3 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-800 text-surface-900 dark:text-surface-50 text-sm"
                   />
-                  <button
+                  <Button
                     onClick={() => handleAddContribution(goal.id)}
-                    className="px-4 py-2 bg-success-500 hover:bg-success-600 text-white rounded-lg text-sm font-medium transition-colors"
+                    className="min-h-11 bg-success-500 px-4 text-surface-950 hover:bg-success-600"
                   >
                     + Add
-                  </button>
+                  </Button>
                 </div>
                 {contribErrors[goal.id] && (
                   <p className="text-xs text-danger-500 mt-1">{contribErrors[goal.id]}</p>
@@ -238,12 +235,14 @@ export default function GoalsPage() {
                               <span className="font-medium text-success-600 dark:text-success-500">
                                 +{formatMoney(c.amountMinor, currency)}
                               </span>
-                              <button
+                              <Button
+                                variant="ghost"
+                                size="sm"
                                 onClick={() => setRemoveTarget({ goalId: goal.id, contribution: c })}
-                                className="text-xs text-danger-500 hover:underline"
+                                className="text-danger-500 hover:underline"
                               >
                                 Remove
-                              </button>
+                              </Button>
                             </div>
                           </div>
                         ))}
@@ -313,19 +312,21 @@ export default function GoalsPage() {
           </div>
 
           <div className="flex gap-3 pt-2">
-            <button
+            <Button
+              variant="secondary"
               type="button"
               onClick={() => setShowGoalForm(false)}
-              className="flex-1 px-4 py-2.5 rounded-lg border border-surface-300 dark:border-surface-600 text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 text-sm font-medium transition-colors"
+              className="flex-1"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="primary"
               type="submit"
-              className="flex-1 px-4 py-2.5 bg-primary-500 hover:bg-primary-600 text-white rounded-lg text-sm font-medium transition-colors"
+              className="flex-1"
             >
               {editingGoal ? 'Save Changes' : 'Create Goal'}
-            </button>
+            </Button>
           </div>
         </form>
       </Modal>

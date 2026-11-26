@@ -7,6 +7,8 @@ import { formatDate } from '../lib/dates';
 import Card from '../components/ui/Card';
 import ConfirmDialog from '../components/ui/ConfirmDialog';
 import EmptyState from '../components/ui/EmptyState';
+import PageHeader from '../components/ui/PageHeader';
+import Button from '../components/ui/Button';
 
 export default function TransactionsPage({ currency = 'USD' }) {
   const { transactions, addTransaction, updateTransaction, deleteTransaction } = useFinance();
@@ -69,17 +71,13 @@ export default function TransactionsPage({ currency = 'USD' }) {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-surface-900 dark:text-surface-50">Transactions</h1>
-        {!showForm && (
-          <button
-            onClick={() => setShowForm(true)}
-            className="px-4 py-2.5 bg-primary-500 hover:bg-primary-600 text-white rounded-lg text-sm font-medium transition-colors"
-          >
-            + Add Transaction
-          </button>
+      <PageHeader
+        title="Transactions"
+        description="Review and manage money coming in and going out."
+        action={!showForm && (
+          <Button onClick={() => setShowForm(true)}>+ Add transaction</Button>
         )}
-      </div>
+      />
 
       {showForm && (
         <Card className="mb-6">
@@ -99,17 +97,14 @@ export default function TransactionsPage({ currency = 'USD' }) {
 
       {sorted.length === 0 ? (
         <EmptyState
-          icon="💳"
+          icon="transactions"
           title="No transactions yet"
           description="Add a transaction to start tracking your finances."
           action={
             !showForm && (
-              <button
-                onClick={() => setShowForm(true)}
-                className="px-4 py-2.5 bg-primary-500 hover:bg-primary-600 text-white rounded-lg text-sm font-medium transition-colors"
-              >
+              <Button onClick={() => setShowForm(true)}>
                 Add your first transaction
-              </button>
+              </Button>
             )
           }
         />
@@ -135,18 +130,20 @@ export default function TransactionsPage({ currency = 'USD' }) {
                 </span>
 
                 <div className="flex gap-1">
-                  <button
+                  <Button
+                    variant="secondary"
+                    size="sm"
                     onClick={() => handleEdit(txn)}
-                    className="text-xs px-3 py-1.5 rounded-lg border border-surface-300 dark:border-surface-600 text-surface-600 dark:text-surface-400 hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors"
                   >
                     Edit
-                  </button>
-                  <button
+                  </Button>
+                  <Button
+                    variant="danger"
+                    size="sm"
                     onClick={() => setDeleteTarget(txn)}
-                    className="text-xs px-3 py-1.5 rounded-lg border border-danger-300 dark:border-danger-500/50 text-danger-500 hover:bg-danger-50 dark:hover:bg-danger-500/10 transition-colors"
                   >
-                    Del
-                  </button>
+                    Delete
+                  </Button>
                 </div>
               </div>
             </Card>
@@ -164,7 +161,7 @@ export default function TransactionsPage({ currency = 'USD' }) {
       />
 
       {toast && (
-        <div className="fixed bottom-20 lg:bottom-6 left-1/2 -translate-x-1/2 z-50 bg-success-500 text-white px-5 py-3 rounded-lg shadow-lg text-sm font-medium">
+        <div role="status" aria-live="polite" className="fixed bottom-20 left-1/2 z-50 -translate-x-1/2 rounded-lg bg-success-500 px-5 py-3 text-sm font-medium text-surface-950 shadow-lg lg:bottom-6">
           {toast}
         </div>
       )}

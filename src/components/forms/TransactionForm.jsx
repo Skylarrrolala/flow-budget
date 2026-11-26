@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { getCategoriesForType } from '../../data/categories';
 import { parseToMinor, minorToInput } from '../../lib/money';
 import { todayString } from '../../lib/dates';
+import Button from '../ui/Button';
 
 export default function TransactionForm({
   onSave,
@@ -157,20 +158,21 @@ export default function TransactionForm({
 
       <div className="flex gap-3 pt-2">
         {onCancel && (
-          <button
+          <Button
+            variant="secondary"
             type="button"
             onClick={onCancel}
-            className="flex-1 px-4 py-2.5 rounded-lg border border-surface-300 dark:border-surface-600 text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 text-sm font-medium transition-colors"
+            className="flex-1"
           >
             Cancel
-          </button>
+          </Button>
         )}
-        <button
+        <Button
           type="submit"
-          className="flex-1 px-4 py-2.5 bg-primary-500 hover:bg-primary-600 text-white rounded-lg text-sm font-medium transition-colors"
+          className="flex-1"
         >
           {isEditing ? 'Save Changes' : 'Add Transaction'}
-        </button>
+        </Button>
       </div>
     </form>
   );
