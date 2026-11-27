@@ -114,6 +114,18 @@ Amounts are stored as integer minor units (cents for USD, whole riel for KHR) to
 
 Budget uniqueness is based on the combination of `month` and `category`. Spending for a budget is the sum of expense transactions with the same month and category; expenses in other categories are not included.
 
+## Responsive Screenshots
+
+The following live-app screenshots document the mobile presentation at a 390-pixel viewport.
+
+### Savings Goals
+
+![FlowBudget Savings Goals mobile view](docs/screenshots/mobile-goals.jpg)
+
+### Settings
+
+![FlowBudget Settings mobile view](docs/screenshots/mobile-settings.jpg)
+
 ## Team Responsibilities
 
 The WBS **Detailed Tasks Owner** column takes precedence over broad module ownership.
