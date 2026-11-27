@@ -38,6 +38,8 @@ We tested Goals and Settings on the deployed application. Goal checks covered re
 
 The final local verification passed 41 automated tests. These tests cover storage migration, malformed storage recovery, goal target-date persistence, contribution behavior, theme changes, currency reset rules, KHR validation, demo-date shifting, transaction editing, and same-month category budgets. ESLint and the Vite production build also completed successfully. A browser check confirmed that Food, Transport, Entertainment, and a newly added Housing budget each used only their matching category expenses and remained available after refresh.
 
+Responsive checks at a 390 by 844 mobile viewport found no horizontal page overflow on Overview, Goals, or Settings. The mobile navigation and visible Settings controls remained in the normal keyboard tab order, and focused navigation links displayed a two-pixel outline. Automated Enter-key activation was inconsistent in the browser test harness, so a final manual pass with a physical keyboard remains pending.
+
 ## Project Links
 
 - GitHub repository: https://github.com/Skylarrrolala/flow-budget

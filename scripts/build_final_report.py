@@ -187,6 +187,13 @@ add_body(
     "build also completed successfully. A browser check confirmed category-specific Food, Transport, Entertainment, "
     "and Housing calculations and verified that a newly added Housing budget remained after refresh.",
 )
+add_body(
+    document,
+    "Responsive checks at a 390 by 844 mobile viewport found no horizontal page overflow on Overview, Goals, or "
+    "Settings. The mobile navigation and visible Settings controls remained in the normal keyboard tab order, and "
+    "focused navigation links displayed a two-pixel outline. Automated Enter-key activation was inconsistent in the "
+    "browser test harness, so a final manual pass with a physical keyboard remains pending.",
+)
 
 add_heading(document, "Project Links")
 github = document.add_paragraph()
