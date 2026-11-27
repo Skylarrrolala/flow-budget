@@ -71,13 +71,16 @@ it('keeps consecutive transaction updates and updates budget spending without re
   await act(() => {
     api.current.addBudget(budget);
     api.current.addBudget({ ...budget, id: 'duplicate-budget' });
+    api.current.addBudget({ ...budget, id: 'transport-budget', category: 'Transport', limitMinor: 5000 });
     api.current.addTransaction(transaction);
     api.current.addTransaction({ ...transaction, id: 'txn-2', amountMinor: 700 });
+    api.current.addTransaction({ ...transaction, id: 'txn-3', category: 'Transport', amountMinor: 300 });
   });
-  expect(api.current.transactions).toHaveLength(2);
-  expect(api.current.budgets).toHaveLength(1);
-  expect(container.textContent).toContain('2 transactions');
+  expect(api.current.transactions).toHaveLength(3);
+  expect(api.current.budgets).toHaveLength(2);
+  expect(container.textContent).toContain('3 transactions');
   expect(container.textContent).toContain('$12.00 / $100.00');
+  expect(container.textContent).toContain('$3.00 / $50.00');
   await act(() => api.current.updateTransaction('txn-1', { ...transaction, amountMinor: 1000 }));
   expect(container.textContent).toContain('$17.00 / $100.00');
   await act(() => {
@@ -86,8 +89,10 @@ it('keeps consecutive transaction updates and updates budget spending without re
   });
   expect(container.textContent).toContain('$10.00 / $200.00');
   await act(() => api.current.deleteBudget('budget-1'));
-  expect(api.current.budgets).toEqual([]);
-  expect(JSON.parse(localStorage.getItem('flowbudget:v1')).transactions).toHaveLength(1);
+  expect(api.current.budgets).toEqual([
+    { ...budget, id: 'transport-budget', category: 'Transport', limitMinor: 5000 },
+  ]);
+  expect(JSON.parse(localStorage.getItem('flowbudget:v1')).transactions).toHaveLength(2);
 });
 
 it('preserves records on theme changes and keeps contributions when editing a goal', async () => {

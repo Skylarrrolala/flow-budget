@@ -8,7 +8,7 @@ FlowBudget is a personal finance tracker for students and young professionals, w
 
 - **Transaction Management** — Add, edit, and delete income/expense transactions with validation
 - **Filtering & Sorting** — Filter transactions by type or category, sort by date or amount
-- **Monthly Budgets** — Set spending limits per month with progress bar tracking
+- **Monthly Category Budgets** — Set one limit per expense category and month, then compare that category's actual spending with its allocation
 - **Dashboard** — Expense breakdown pie chart, income vs expenses bar chart, and summary totals
 - **Navigation** — Client-side routing between Dashboard, Transactions, and Budgets pages
 - **Data Persistence** — All data saved to localStorage (survives page refresh)
@@ -106,10 +106,13 @@ Amounts are stored as integer minor units (cents for USD, whole riel for KHR) to
 ```json
 {
   "id": "uuid",
+  "category": "Food",
   "month": "2026-11",
   "limitMinor": 100000
 }
 ```
+
+Budget uniqueness is based on the combination of `month` and `category`. Spending for a budget is the sum of expense transactions with the same month and category; expenses in other categories are not included.
 
 ## Team Responsibilities
 

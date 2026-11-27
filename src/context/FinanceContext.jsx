@@ -88,7 +88,9 @@ export function FinanceProvider({ children }) {
     const newBudget = { ...budget, id: budget.id || crypto.randomUUID() };
     setSnapshot((prev) => ({
       ...prev,
-      budgets: prev.budgets.some((item) => item.month === budget.month)
+      budgets: prev.budgets.some((item) =>
+        item.month === budget.month && item.category === budget.category
+      )
         ? prev.budgets : [newBudget, ...prev.budgets],
     }));
   }, []);
