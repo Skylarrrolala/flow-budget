@@ -11,7 +11,7 @@ const NAV_ITEMS = [
 
 export default function Sidebar() {
   return (
-    <aside className="hidden min-h-dvh w-60 shrink-0 flex-col border-r border-surface-200 bg-white dark:border-surface-700 dark:bg-surface-900 lg:flex">
+    <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col overflow-y-auto border-r border-surface-200 bg-white dark:border-surface-700 dark:bg-surface-900 lg:flex">
       <div className="flex h-[76px] items-center gap-3 border-b border-surface-200 px-6 dark:border-surface-700">
         <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-500 text-surface-950">
           <Icon name="wallet" size={18} />

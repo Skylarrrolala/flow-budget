@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { createDefaultSnapshot, loadSnapshot, saveSnapshot, exportAllData, clearAllData } from '../lib/storage';
-import { todayString } from '../lib/dates';
+import { currentMonthString, shiftDate, todayString } from '../lib/dates';
+import { DEMO_BUDGETS, DEMO_GOALS, DEMO_TRANSACTIONS } from '../data/demoData';
 
 const FinanceContext = createContext();
 
@@ -87,7 +88,9 @@ export function FinanceProvider({ children }) {
     const newBudget = { ...budget, id: budget.id || crypto.randomUUID() };
     setSnapshot((prev) => ({
       ...prev,
-      budgets: prev.budgets.some((item) => item.month === budget.month)
+      budgets: prev.budgets.some((item) =>
+        item.month === budget.month && item.category === budget.category
+      )
         ? prev.budgets : [newBudget, ...prev.budgets],
     }));
   }, []);
@@ -175,6 +178,35 @@ export function FinanceProvider({ children }) {
     showToast('All data has been reset.');
   }, [showToast]);
 
+  const loadDemoData = useCallback(() => {
+    const newestDemoDate = new Date(`${DEMO_TRANSACTIONS[0].date}T00:00:00Z`);
+    const today = new Date(`${todayString()}T00:00:00Z`);
+    const dayOffset = Math.round((today.getTime() - newestDemoDate.getTime()) / (24 * 60 * 60 * 1000));
+    const transactions = DEMO_TRANSACTIONS.map((transaction) => ({
+      ...transaction,
+      date: shiftDate(transaction.date, dayOffset),
+    }));
+    const month = currentMonthString();
+    const budgets = DEMO_BUDGETS.map((budget) => ({ ...budget, month }));
+    const goals = DEMO_GOALS.map((goal) => ({
+      ...goal,
+      targetDate: goal.targetDate ? shiftDate(goal.targetDate, dayOffset) : goal.targetDate,
+      contributions: goal.contributions.map((contribution) => ({
+        ...contribution,
+        date: shiftDate(contribution.date, dayOffset),
+      })),
+    }));
+
+    setSnapshot((prev) => ({
+      ...prev,
+      transactions,
+      budgets,
+      goals,
+      settings: { ...prev.settings, currency: 'USD' },
+    }));
+    showToast('Demo data loaded.');
+  }, [showToast]);
+
   const value = {
     ...snapshot,
     toast,
@@ -195,6 +227,7 @@ export function FinanceProvider({ children }) {
     removeContribution,
     handleExport,
     factoryReset,
+    loadDemoData,
   };
 
   return (

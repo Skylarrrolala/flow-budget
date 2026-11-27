@@ -1,7 +1,8 @@
-// Will hold the agreed income and expense category lists.
+// Keep these labels aligned with the persisted transaction and demo-data categories.
 export const INCOME_CATEGORIES = [
   'Salary',
   'Freelance',
+  'Allowance',
   'Investment',
   'Gift',
   'Other Income',
