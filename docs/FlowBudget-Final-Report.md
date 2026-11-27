@@ -1,7 +1,9 @@
 # FlowBudget Final Project Report
 
-INF 651 Frontend Development  
-Fall 2026  
+INF 651 Frontend Development
+
+Fall 2026
+
 Rithy, Narith, and Menghor
 
 ## Project Overview
