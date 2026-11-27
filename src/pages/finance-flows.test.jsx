@@ -64,9 +64,14 @@ async function click(label, scope = container) {
 
 async function enterAmount(value) {
   const input = container.querySelector('input[type="number"]');
+  await enterValue(input, value);
+}
+
+async function enterValue(input, value) {
   await act(() => {
     Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(input, value);
     input.dispatchEvent(new Event('input', { bubbles: true }));
+    input.dispatchEvent(new Event('change', { bubbles: true }));
   });
 }
 
@@ -200,6 +205,30 @@ describe('demo data', () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+});
+
+describe('goal persistence', () => {
+  it('saves an optional target date and restores it after remounting', async () => {
+    await render(<GoalsPage />);
+    await click(/Create Goal$/);
+    await enterValue(container.querySelector('input[type="text"]'), 'Study abroad');
+    await enterValue(container.querySelector('input[type="number"]'), '1000');
+    await enterValue(container.querySelector('input[type="date"]'), '2027-01-15');
+    await click(/^Create Goal$/);
+
+    expect(readSaved().goals[0]).toMatchObject({
+      name: 'Study abroad',
+      targetAmountMinor: 100000,
+      targetDate: '2027-01-15',
+    });
+
+    await act(() => root.unmount());
+    root = createRoot(container);
+    await render(<GoalsPage />);
+    expect(container.textContent).toContain('Target: Jan 15, 2027');
+    await click(/^Edit$/);
+    expect(container.querySelector('input[type="date"]').value).toBe('2027-01-15');
   });
 });
 
