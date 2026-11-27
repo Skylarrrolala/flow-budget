@@ -4,13 +4,15 @@
 
 FlowBudget is a personal finance tracker for students and young professionals, with a responsive dashboard, income and expense records, monthly category budgets, savings goals, and application settings.
 
+**Live demo:** [flow-budget-navy.vercel.app](https://flow-budget-navy.vercel.app)
+
 ## Implemented Features
 
 - **Transaction Management** — Add, edit, and delete income/expense transactions with validation
-- **Filtering & Sorting** — Filter transactions by type or category, sort by date or amount
-- **Monthly Budgets** — Set spending limits per month with progress bar tracking
+- **Filtering & Sorting** — Filter transactions by type, category, month, or date range, sort by date or amount
+- **Monthly Budgets** — Set spending limits per category with color-coded progress bars (green, yellow, red)
 - **Dashboard** — Expense breakdown pie chart, income vs expenses bar chart, and summary totals
-- **Navigation** — Client-side routing between Dashboard, Transactions, and Budgets pages
+- **Navigation** — Client-side routing between Dashboard, Transactions, Budgets, Savings Goals, and Settings pages
 - **Data Persistence** — All data saved to localStorage (survives page refresh)
 - **Multi-Currency** — Supports USD (cents) and KHR (whole riel) using integer minor units
 
@@ -22,6 +24,7 @@ FlowBudget is a personal finance tracker for students and young professionals, w
 | Vite 8.3.8 | Local development and production builds |
 | React Router DOM | Navigation across pages |
 | Recharts | Dashboard charts derived from finance data |
+| Tailwind CSS | Utility-first styling and dark mode |
 | Context API, useState, useEffect | Shared finance data, local form state, and synchronization |
 | Browser localStorage | Data persistence in the same browser profile |
 | GitHub | Collaboration and version control |
@@ -70,13 +73,13 @@ Tests include money/date utilities, KHR amount validation, edit switching, and c
 | Path | Responsibility |
 | --- | --- |
 | `public/` | Static assets served directly |
-| `src/components/layout/` | Navigation bar |
-| `src/components/ui/` | Reusable controls (transaction filters) |
+| `src/components/layout/` | Navigation bar and page layout |
+| `src/components/ui/` | Reusable controls (transaction filters, progress bars, cards, buttons) |
 | `src/components/charts/` | Presentational dashboard charts |
 | `src/components/forms/` | Transaction and budget forms |
 | `src/context/` | Shared finance state and approved actions |
 | `src/hooks/` | Browser persistence synchronization |
-| `src/pages/` | Dashboard, Transactions, Budgets, Goals, and Settings views |
+| `src/pages/` | Dashboard, Transactions, Budgets, Goals, Settings, and Not Found views |
 | `src/routes/` | React Router page navigation |
 | `src/lib/` | Shared money, date, validation, and storage utilities |
 | `src/data/` | Category constants |
@@ -107,9 +110,11 @@ Amounts are stored as integer minor units (cents for USD, whole riel for KHR) to
 {
   "id": "uuid",
   "month": "2026-11",
+  "category": "Food",
   "limitMinor": 100000
 }
 ```
+Each budget targets a single expense category. Progress bars indicate spending status: green (under 80%), yellow (80–100%), and red (over budget).
 
 ## Team Responsibilities
 
